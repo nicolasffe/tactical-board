@@ -18,11 +18,59 @@ body {
   margin: 0;
   overflow: hidden;
   background:
-    radial-gradient(circle at 14% 12%, rgba(14, 165, 233, 0.16), transparent 30%),
-    radial-gradient(circle at 84% 0%, rgba(148, 163, 184, 0.22), transparent 36%),
+    radial-gradient(
+      circle at 14% 12%,
+      rgba(14, 165, 233, 0.16),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 84% 0%,
+      rgba(148, 163, 184, 0.22),
+      transparent 36%
+    ),
     linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%),
-    repeating-linear-gradient(0deg, rgba(148, 163, 184, 0.12) 0 1px, transparent 1px 22px),
-    repeating-linear-gradient(90deg, rgba(148, 163, 184, 0.12) 0 1px, transparent 1px 22px);
-  background-size: auto, auto, auto, 22px 22px, 22px 22px;
+    repeating-linear-gradient(
+      0deg,
+      rgba(148, 163, 184, 0.12) 0 1px,
+      transparent 1px 22px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.12) 0 1px,
+      transparent 1px 22px
+    );
+  background-size:
+    auto,
+    auto,
+    auto,
+    22px 22px,
+    22px 22px;
+  color: var(--motus-text);
+}
+
+body[data-ui-theme="dark"],
+body[data-ui-theme="high-contrast"] {
+  background:
+    radial-gradient(
+      circle at 14% 12%,
+      rgba(14, 165, 233, 0.16),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 84% 0%,
+      rgba(148, 163, 184, 0.22),
+      transparent 36%
+    ),
+    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(148, 163, 184, 0.12) 0 1px,
+      transparent 1px 22px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.12) 0 1px,
+      transparent 1px 22px
+    );
   color: var(--motus-text);
 }

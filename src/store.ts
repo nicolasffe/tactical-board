@@ -5,31 +5,37 @@ import type { StoreApi } from "zustand";
 import { v4 as uuidv4 } from "uuid";
 
 import type {
+  AddFreehandInput,
   AddEntityInput,
+  AddPolygonInput,
+  AddRulerInput,
+  AddTextInput,
   AnchorTarget,
   BoardHistory,
   BoardSelection,
   BoardSettings,
   ControlPointKey,
+  DrawTool,
+  FrameOverlays,
   FormationPreset,
   FrameEntityState,
   Id,
   NewLineInput,
   PlaybackState,
+  PitchPreset,
   Point,
   PlayerEntity,
   RenderBoardState,
   TacticalBoardExport,
+  TacticalBoardImport,
   TacticalBoardSnapshot,
   TacticalEntity,
   TacticalLine,
   TeamSide,
   TimelineFrame,
 } from "./types";
-import {
-  FORMATION_PRESETS,
-  PITCH_DIMENSIONS,
-} from "./types";
+import { FORMATION_PRESETS, PITCH_DIMENSIONS } from "./types";
+import { PITCH_PRESET_DIMENSIONS } from "./types";
 
 const HISTORY_LIMIT = 100;
 
@@ -40,11 +46,21 @@ const LINE_COLORS: Record<TacticalLine["type"], string> = {
 };
 
 const DEFAULT_SETTINGS: BoardSettings = {
+  mode: "match",
+  orientation: "landscape",
+  pitchStyle: "realistic-grass",
+  pitchPreset: "football-105x68",
+  theme: "light",
   pitchView: "full",
   showGrid: false,
   showZones: false,
   showPlayerNames: false,
   snapToEntities: true,
+  training: {
+    focus: "half-attacking",
+    visibleTeams: ["home"],
+    emphasizeEquipment: true,
+  },
 };
 
 const DEFAULT_PLAYBACK: PlaybackState = {
@@ -61,7 +77,7 @@ interface TacticalBoardStore {
   entities: Record<Id, TacticalEntity>;
   frames: TimelineFrame[];
   activeFrameId: Id;
-  activeTool: "select" | "pass" | "run" | "dribble";
+  activeTool: DrawTool;
   selection: BoardSelection;
   history: BoardHistory;
   playback: PlaybackState;
@@ -76,7 +92,11 @@ interface TacticalBoardStore {
   returnPlayerToPitch: (playerId: Id, frameId?: Id) => void;
   removeEntity: (entityId: Id) => void;
   addLine: (input: NewLineInput, frameId?: Id) => void;
-  updateLine: (lineId: Id, updates: Partial<TacticalLine>, frameId?: Id) => void;
+  updateLine: (
+    lineId: Id,
+    updates: Partial<TacticalLine>,
+    frameId?: Id,
+  ) => void;
   updateLineControlPoint: (
     lineId: Id,
     controlPointKey: ControlPointKey,
@@ -84,12 +104,45 @@ interface TacticalBoardStore {
     frameId?: Id,
   ) => void;
   removeLine: (lineId: Id, frameId?: Id) => void;
+  addFreehand: (input: AddFreehandInput, frameId?: Id) => void;
+  updateFreehand: (
+    strokeId: Id,
+    updates: Partial<FrameOverlays["freehand"][number]>,
+    frameId?: Id,
+  ) => void;
+  removeFreehand: (strokeId: Id, frameId?: Id) => void;
+  addPolygon: (input: AddPolygonInput, frameId?: Id) => void;
+  updatePolygon: (
+    polygonId: Id,
+    updates: Partial<FrameOverlays["polygons"][number]>,
+    frameId?: Id,
+  ) => void;
+  removePolygon: (polygonId: Id, frameId?: Id) => void;
+  addText: (input: AddTextInput, frameId?: Id) => void;
+  updateText: (
+    textId: Id,
+    updates: Partial<FrameOverlays["texts"][number]>,
+    frameId?: Id,
+  ) => void;
+  removeText: (textId: Id, frameId?: Id) => void;
+  addRuler: (input: AddRulerInput, frameId?: Id) => void;
+  updateRuler: (
+    rulerId: Id,
+    updates: Partial<FrameOverlays["rulers"][number]>,
+    frameId?: Id,
+  ) => void;
+  removeRuler: (rulerId: Id, frameId?: Id) => void;
+  removeOverlayById: (overlayId: Id, frameId?: Id) => void;
   addFrame: (name?: string) => void;
   duplicateFrame: (frameId?: Id) => void;
   removeFrame: (frameId: Id) => void;
   setActiveFrame: (frameId: Id) => void;
   updateFrameDuration: (frameId: Id, durationMs: number) => void;
-  applyFormation: (team: TeamSide, formation: FormationPreset, frameId?: Id) => void;
+  applyFormation: (
+    team: TeamSide,
+    formation: FormationPreset,
+    frameId?: Id,
+  ) => void;
   play: () => void;
   pause: () => void;
   stop: () => void;
@@ -100,7 +153,7 @@ interface TacticalBoardStore {
   redo: () => void;
   resetBoard: () => void;
   exportPlaybook: () => TacticalBoardExport;
-  importPlaybook: (payload: TacticalBoardExport) => void;
+  importPlaybook: (payload: TacticalBoardImport) => void;
   getRenderableState: () => RenderBoardState;
 }
 
@@ -114,20 +167,20 @@ const isGoalkeeperEntity = (
 
 const isOutfieldPlayerEntity = (
   entity: TacticalEntity,
-): entity is PlayerEntity & { kind: "player" } =>
-  entity.kind === "player";
+): entity is PlayerEntity & { kind: "player" } => entity.kind === "player";
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
-const lerp = (from: number, to: number, t: number): number => from + (to - from) * t;
+const lerp = (from: number, to: number, t: number): number =>
+  from + (to - from) * t;
 
 const lerpPoint = (from: Point, to: Point, t: number): Point => ({
   x: lerp(from.x, to.x, t),
   y: lerp(from.y, to.y, t),
 });
 
-const deepClone = <T,>(value: T): T => structuredClone(value);
+const deepClone = <T>(value: T): T => structuredClone(value);
 
 const createFrameEntityState = (position: Point): FrameEntityState => ({
   position,
@@ -135,8 +188,8 @@ const createFrameEntityState = (position: Point): FrameEntityState => ({
   visible: true,
 });
 
-const mirrorForAway = (point: Point): Point => ({
-  x: PITCH_DIMENSIONS.width - point.x,
+const mirrorForAway = (point: Point, dimensions: { width: number }): Point => ({
+  x: dimensions.width - point.x,
   y: point.y,
 });
 
@@ -149,32 +202,41 @@ const parseFormation = (formation: FormationPreset): number[] =>
 const buildOutfieldPositions = (
   formation: FormationPreset,
   team: TeamSide,
+  dimensions = PITCH_DIMENSIONS,
 ): Point[] => {
   const rows = parseFormation(formation);
-  const lineStartX = 22;
-  const lineEndX = 70;
-  const spacing = rows.length > 1 ? (lineEndX - lineStartX) / (rows.length - 1) : 0;
+  const lineStartX = (22 / 105) * dimensions.width;
+  const lineEndX = (70 / 105) * dimensions.width;
+  const spacing =
+    rows.length > 1 ? (lineEndX - lineStartX) / (rows.length - 1) : 0;
 
   const positions = rows.flatMap((count, rowIndex) => {
     const x = lineStartX + spacing * rowIndex;
-    const laneGap = PITCH_DIMENSIONS.height / (count + 1);
+    const laneGap = dimensions.height / (count + 1);
     return Array.from({ length: count }, (_, laneIndex) => ({
       x,
       y: laneGap * (laneIndex + 1),
     }));
   });
 
-  return team === "away" ? positions.map(mirrorForAway) : positions;
+  return team === "away"
+    ? positions.map((point) => mirrorForAway(point, dimensions))
+    : positions;
 };
 
 const buildTeamEntities = (
   team: TeamSide,
   formation: FormationPreset,
   color: string,
+  dimensions = PITCH_DIMENSIONS,
 ): TacticalEntity[] => {
   const sidePrefix = team === "home" ? "H" : "A";
-  const goalkeeperPoint = team === "home" ? { x: 8, y: 34 } : { x: 97, y: 34 };
-  const outfieldPositions = buildOutfieldPositions(formation, team);
+  const goalkeeperOffsetX = (8 / 105) * dimensions.width;
+  const goalkeeperPoint =
+    team === "home"
+      ? { x: goalkeeperOffsetX, y: dimensions.height / 2 }
+      : { x: dimensions.width - goalkeeperOffsetX, y: dimensions.height / 2 };
+  const outfieldPositions = buildOutfieldPositions(formation, team, dimensions);
 
   const goalkeeper: TacticalEntity = {
     id: `${team}-gk`,
@@ -223,6 +285,103 @@ const createFrameStatesFromEntities = (
     ]),
   );
 
+const createEmptyOverlays = (): FrameOverlays => ({
+  lines: [],
+  freehand: [],
+  polygons: [],
+  texts: [],
+  rulers: [],
+});
+
+const getDimensionsByPreset = (preset: PitchPreset) =>
+  PITCH_PRESET_DIMENSIONS[preset] ?? PITCH_DIMENSIONS;
+
+const scalePoint = (point: Point, scaleX: number, scaleY: number): Point => ({
+  x: point.x * scaleX,
+  y: point.y * scaleY,
+});
+
+const scaleAnchor = (
+  anchor: AnchorTarget,
+  scaleX: number,
+  scaleY: number,
+): AnchorTarget => {
+  if (anchor.kind === "free") {
+    return {
+      ...anchor,
+      point: scalePoint(anchor.point, scaleX, scaleY),
+    };
+  }
+
+  return {
+    ...anchor,
+    offset: anchor.offset
+      ? scalePoint(anchor.offset, scaleX, scaleY)
+      : anchor.offset,
+  };
+};
+
+const scaleFrameOverlays = (
+  overlays: FrameOverlays,
+  scaleX: number,
+  scaleY: number,
+): FrameOverlays => ({
+  lines: overlays.lines.map((line) => ({
+    ...line,
+    start: scaleAnchor(line.start, scaleX, scaleY),
+    end: scaleAnchor(line.end, scaleX, scaleY),
+    controlPoint1: scalePoint(line.controlPoint1, scaleX, scaleY),
+    controlPoint2: scalePoint(line.controlPoint2, scaleX, scaleY),
+  })),
+  freehand: overlays.freehand.map((stroke) => ({
+    ...stroke,
+    points: stroke.points.map((point) => scalePoint(point, scaleX, scaleY)),
+  })),
+  polygons: overlays.polygons.map((polygon) => ({
+    ...polygon,
+    points: polygon.points.map((point) => scalePoint(point, scaleX, scaleY)),
+  })),
+  texts: overlays.texts.map((text) => ({
+    ...text,
+    position: scalePoint(text.position, scaleX, scaleY),
+  })),
+  rulers: overlays.rulers.map((ruler) => ({
+    ...ruler,
+    start: scaleAnchor(ruler.start, scaleX, scaleY),
+    end: scaleAnchor(ruler.end, scaleX, scaleY),
+  })),
+});
+
+const scaleSnapshotToPreset = (
+  snapshot: TacticalBoardSnapshot,
+  fromPreset: PitchPreset,
+  toPreset: PitchPreset,
+): void => {
+  if (fromPreset === toPreset) {
+    return;
+  }
+
+  const from = getDimensionsByPreset(fromPreset);
+  const to = getDimensionsByPreset(toPreset);
+  const scaleX = to.width / from.width;
+  const scaleY = to.height / from.height;
+
+  Object.values(snapshot.entities).forEach((entity) => {
+    entity.defaultPosition = scalePoint(entity.defaultPosition, scaleX, scaleY);
+  });
+
+  snapshot.frames.forEach((frame) => {
+    Object.entries(frame.entityStates).forEach(([entityId, entityState]) => {
+      frame.entityStates[entityId] = {
+        ...entityState,
+        position: scalePoint(entityState.position, scaleX, scaleY),
+      };
+    });
+
+    frame.overlays = scaleFrameOverlays(frame.overlays, scaleX, scaleY);
+  });
+};
+
 const createFrame = (
   name: string,
   entities: Record<Id, TacticalEntity>,
@@ -232,13 +391,34 @@ const createFrame = (
   name,
   durationMs,
   entityStates: createFrameStatesFromEntities(entities),
-  lines: [],
+  overlays: createEmptyOverlays(),
 });
 
+const ensureFrameOverlays = (
+  frame: Partial<TimelineFrame> & { lines?: TacticalLine[] },
+): FrameOverlays => {
+  const overlays = frame.overlays;
+  if (overlays) {
+    return {
+      lines: overlays.lines ?? [],
+      freehand: overlays.freehand ?? [],
+      polygons: overlays.polygons ?? [],
+      texts: overlays.texts ?? [],
+      rulers: overlays.rulers ?? [],
+    };
+  }
+
+  return {
+    ...createEmptyOverlays(),
+    lines: frame.lines ?? [],
+  };
+};
+
 const createInitialSnapshot = (): TacticalBoardSnapshot => {
+  const initialDimensions = getDimensionsByPreset(DEFAULT_SETTINGS.pitchPreset);
   const entities = toEntityMap([
-    ...buildTeamEntities("home", "4-3-3", "#19d3c5"),
-    ...buildTeamEntities("away", "4-4-2", "#2f6bff"),
+    ...buildTeamEntities("home", "4-3-3", "#19d3c5", initialDimensions),
+    ...buildTeamEntities("away", "4-4-2", "#2f6bff", initialDimensions),
     ...buildEquipmentEntities(),
   ]);
 
@@ -252,7 +432,9 @@ const createInitialSnapshot = (): TacticalBoardSnapshot => {
   };
 };
 
-const snapshotFromState = (state: TacticalBoardStore): TacticalBoardSnapshot => ({
+const snapshotFromState = (
+  state: TacticalBoardStore,
+): TacticalBoardSnapshot => ({
   settings: deepClone(state.settings),
   entities: deepClone(state.entities),
   frames: deepClone(state.frames),
@@ -262,8 +444,10 @@ const snapshotFromState = (state: TacticalBoardStore): TacticalBoardSnapshot => 
 const getFrameIndex = (frames: TimelineFrame[], frameId: Id): number =>
   frames.findIndex((frame) => frame.id === frameId);
 
-const getFrameById = (frames: TimelineFrame[], frameId: Id): TimelineFrame | undefined =>
-  frames.find((frame) => frame.id === frameId);
+const getFrameById = (
+  frames: TimelineFrame[],
+  frameId: Id,
+): TimelineFrame | undefined => frames.find((frame) => frame.id === frameId);
 
 const getEntityPosition = (
   frame: TimelineFrame,
@@ -295,7 +479,10 @@ const resolveAnchorPoint = (
   };
 };
 
-const createDefaultControlPoints = (start: Point, end: Point): Pick<TacticalLine, "controlPoint1" | "controlPoint2"> => ({
+const createDefaultControlPoints = (
+  start: Point,
+  end: Point,
+): Pick<TacticalLine, "controlPoint1" | "controlPoint2"> => ({
   controlPoint1: {
     x: lerp(start.x, end.x, 0.33),
     y: lerp(start.y, end.y, 0.33),
@@ -325,7 +512,7 @@ const getNextFrameId = (
   }
 
   if (index === frames.length - 1) {
-    return loop ? frames[0]?.id ?? null : null;
+    return loop ? (frames[0]?.id ?? null) : null;
   }
 
   return frames[index + 1].id;
@@ -407,8 +594,10 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
   activeFrameId: initialSnapshot.activeFrameId,
   activeTool: "select",
   selection: {
-    entityId: null,
-    lineId: null,
+    entityIds: [],
+    overlayIds: [],
+    activeEntityId: null,
+    activeOverlayId: null,
   },
   history: {
     past: [],
@@ -421,7 +610,15 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
     set((state) => ({
       ...state,
       activeTool: tool,
-      selection: tool === "select" ? state.selection : { entityId: null, lineId: null },
+      selection:
+        tool === "select"
+          ? state.selection
+          : {
+              entityIds: [],
+              overlayIds: [],
+              activeEntityId: null,
+              activeOverlayId: null,
+            },
     }));
   },
 
@@ -439,18 +636,42 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
     set((state) => ({
       ...state,
       selection: {
-        entityId: null,
-        lineId: null,
+        entityIds: [],
+        overlayIds: [],
+        activeEntityId: null,
+        activeOverlayId: null,
       },
     }));
   },
 
   setBoardSettings: (updates) => {
     applyBoardMutation(set, get, (draft) => {
+      const previousPreset = draft.settings.pitchPreset;
+      const normalizedUpdates: Partial<BoardSettings> = {
+        ...updates,
+        pitchPreset: "football-105x68",
+        theme: "light",
+      };
+
       draft.settings = {
         ...draft.settings,
-        ...updates,
+        ...normalizedUpdates,
+        training: {
+          ...draft.settings.training,
+          ...(normalizedUpdates.training ?? {}),
+        },
       };
+
+      if (
+        normalizedUpdates.pitchPreset &&
+        normalizedUpdates.pitchPreset !== previousPreset
+      ) {
+        scaleSnapshotToPreset(
+          draft,
+          previousPreset,
+          normalizedUpdates.pitchPreset,
+        );
+      }
     });
   },
 
@@ -472,6 +693,9 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
           name: input.name ?? `${team === "home" ? "H" : "A"}${number}`,
           label: input.label ?? `${number}`,
           color: input.color ?? (team === "home" ? "#19d3c5" : "#2f6bff"),
+          avatarUrl: input.avatarUrl,
+          jerseyStyle: input.jerseyStyle,
+          isStarter: input.isStarter,
           radius: kind === "goalkeeper" ? 2.3 : 2.1,
           rotation: 0,
           defaultPosition: input.position,
@@ -604,10 +828,18 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
 
         delete frame.entityStates[entityId];
 
-        frame.lines = frame.lines.map((line) => ({
+        frame.overlays.lines = frame.overlays.lines.map((line) => ({
           ...line,
-          start: convertAnchorAfterEntityDelete(line.start, entityId, fallbackPoint),
-          end: convertAnchorAfterEntityDelete(line.end, entityId, fallbackPoint),
+          start: convertAnchorAfterEntityDelete(
+            line.start,
+            entityId,
+            fallbackPoint,
+          ),
+          end: convertAnchorAfterEntityDelete(
+            line.end,
+            entityId,
+            fallbackPoint,
+          ),
         }));
       });
     });
@@ -615,8 +847,14 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
     set((state) => ({
       ...state,
       selection:
-        state.selection.entityId === entityId
-          ? { ...state.selection, entityId: null }
+        state.selection.activeEntityId === entityId
+          ? {
+              ...state.selection,
+              activeEntityId: null,
+              entityIds: state.selection.entityIds.filter(
+                (id) => id !== entityId,
+              ),
+            }
           : state.selection,
     }));
   },
@@ -645,7 +883,7 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         controlPoint2: input.controlPoint2 ?? defaults.controlPoint2,
       };
 
-      frame.lines = [...frame.lines, line];
+      frame.overlays.lines = [...frame.overlays.lines, line];
     });
   },
 
@@ -657,13 +895,15 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         return false;
       }
 
-      const lineIndex = frame.lines.findIndex((line) => line.id === lineId);
+      const lineIndex = frame.overlays.lines.findIndex(
+        (line) => line.id === lineId,
+      );
       if (lineIndex < 0) {
         return false;
       }
 
-      const current = frame.lines[lineIndex];
-      frame.lines[lineIndex] = {
+      const current = frame.overlays.lines[lineIndex];
+      frame.overlays.lines[lineIndex] = {
         ...current,
         ...updates,
         id: current.id,
@@ -679,13 +919,15 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         return false;
       }
 
-      const lineIndex = frame.lines.findIndex((line) => line.id === lineId);
+      const lineIndex = frame.overlays.lines.findIndex(
+        (line) => line.id === lineId,
+      );
       if (lineIndex < 0) {
         return false;
       }
 
-      frame.lines[lineIndex] = {
-        ...frame.lines[lineIndex],
+      frame.overlays.lines[lineIndex] = {
+        ...frame.overlays.lines[lineIndex],
         [controlPointKey]: point,
       };
     });
@@ -699,10 +941,12 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         return false;
       }
 
-      const beforeCount = frame.lines.length;
-      frame.lines = frame.lines.filter((line) => line.id !== lineId);
+      const beforeCount = frame.overlays.lines.length;
+      frame.overlays.lines = frame.overlays.lines.filter(
+        (line) => line.id !== lineId,
+      );
 
-      if (frame.lines.length === beforeCount) {
+      if (frame.overlays.lines.length === beforeCount) {
         return false;
       }
     });
@@ -710,8 +954,300 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
     set((state) => ({
       ...state,
       selection:
-        state.selection.lineId === lineId
-          ? { ...state.selection, lineId: null }
+        state.selection.activeOverlayId === lineId
+          ? {
+              ...state.selection,
+              activeOverlayId: null,
+              overlayIds: state.selection.overlayIds.filter(
+                (id) => id !== lineId,
+              ),
+            }
+          : state.selection,
+    }));
+  },
+
+  addFreehand: (input, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame || input.points.length < 2) {
+        return false;
+      }
+
+      frame.overlays.freehand.push({
+        id: uuidv4(),
+        points: input.points,
+        color: input.color ?? "#0f172a",
+        width: input.width ?? 0.7,
+        opacity: input.opacity ?? 0.9,
+      });
+    });
+  },
+
+  updateFreehand: (strokeId, updates, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const index = frame.overlays.freehand.findIndex(
+        (stroke) => stroke.id === strokeId,
+      );
+      if (index < 0) {
+        return false;
+      }
+
+      frame.overlays.freehand[index] = {
+        ...frame.overlays.freehand[index],
+        ...updates,
+        id: strokeId,
+      };
+    });
+  },
+
+  removeFreehand: (strokeId, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const before = frame.overlays.freehand.length;
+      frame.overlays.freehand = frame.overlays.freehand.filter(
+        (stroke) => stroke.id !== strokeId,
+      );
+      if (frame.overlays.freehand.length === before) {
+        return false;
+      }
+    });
+  },
+
+  addPolygon: (input, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame || input.points.length < 3) {
+        return false;
+      }
+
+      frame.overlays.polygons.push({
+        id: uuidv4(),
+        points: input.points,
+        label: input.label,
+        stroke: input.stroke ?? "#22c55e",
+        strokeWidth: input.strokeWidth ?? 0.42,
+        fill: input.fill ?? "#22c55e",
+        opacity: input.opacity ?? 0.22,
+      });
+    });
+  },
+
+  updatePolygon: (polygonId, updates, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const index = frame.overlays.polygons.findIndex(
+        (polygon) => polygon.id === polygonId,
+      );
+      if (index < 0) {
+        return false;
+      }
+
+      frame.overlays.polygons[index] = {
+        ...frame.overlays.polygons[index],
+        ...updates,
+        id: polygonId,
+      };
+    });
+  },
+
+  removePolygon: (polygonId, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const before = frame.overlays.polygons.length;
+      frame.overlays.polygons = frame.overlays.polygons.filter(
+        (polygon) => polygon.id !== polygonId,
+      );
+      if (frame.overlays.polygons.length === before) {
+        return false;
+      }
+    });
+  },
+
+  addText: (input, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame || !input.text.trim()) {
+        return false;
+      }
+
+      frame.overlays.texts.push({
+        id: uuidv4(),
+        text: input.text,
+        position: input.position,
+        color: input.color ?? "#e2e8f0",
+        fontSize: input.fontSize ?? 2,
+        align: input.align ?? "left",
+        maxWidth: input.maxWidth,
+      });
+    });
+  },
+
+  updateText: (textId, updates, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const index = frame.overlays.texts.findIndex(
+        (text) => text.id === textId,
+      );
+      if (index < 0) {
+        return false;
+      }
+
+      frame.overlays.texts[index] = {
+        ...frame.overlays.texts[index],
+        ...updates,
+        id: textId,
+      };
+    });
+  },
+
+  removeText: (textId, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const before = frame.overlays.texts.length;
+      frame.overlays.texts = frame.overlays.texts.filter(
+        (text) => text.id !== textId,
+      );
+      if (frame.overlays.texts.length === before) {
+        return false;
+      }
+    });
+  },
+
+  addRuler: (input, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      frame.overlays.rulers.push({
+        id: uuidv4(),
+        start: input.start,
+        end: input.end,
+        color: input.color ?? "#f8fafc",
+        width: input.width ?? 0.4,
+        unit: "m",
+      });
+    });
+  },
+
+  updateRuler: (rulerId, updates, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const index = frame.overlays.rulers.findIndex(
+        (ruler) => ruler.id === rulerId,
+      );
+      if (index < 0) {
+        return false;
+      }
+
+      frame.overlays.rulers[index] = {
+        ...frame.overlays.rulers[index],
+        ...updates,
+        id: rulerId,
+      };
+    });
+  },
+
+  removeRuler: (rulerId, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const before = frame.overlays.rulers.length;
+      frame.overlays.rulers = frame.overlays.rulers.filter(
+        (ruler) => ruler.id !== rulerId,
+      );
+      if (frame.overlays.rulers.length === before) {
+        return false;
+      }
+    });
+  },
+
+  removeOverlayById: (overlayId, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const frame = getFrameById(draft.frames, frameId ?? draft.activeFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const beforeCount =
+        frame.overlays.lines.length +
+        frame.overlays.freehand.length +
+        frame.overlays.polygons.length +
+        frame.overlays.texts.length +
+        frame.overlays.rulers.length;
+
+      frame.overlays.lines = frame.overlays.lines.filter(
+        (line) => line.id !== overlayId,
+      );
+      frame.overlays.freehand = frame.overlays.freehand.filter(
+        (stroke) => stroke.id !== overlayId,
+      );
+      frame.overlays.polygons = frame.overlays.polygons.filter(
+        (polygon) => polygon.id !== overlayId,
+      );
+      frame.overlays.texts = frame.overlays.texts.filter(
+        (text) => text.id !== overlayId,
+      );
+      frame.overlays.rulers = frame.overlays.rulers.filter(
+        (ruler) => ruler.id !== overlayId,
+      );
+
+      const afterCount =
+        frame.overlays.lines.length +
+        frame.overlays.freehand.length +
+        frame.overlays.polygons.length +
+        frame.overlays.texts.length +
+        frame.overlays.rulers.length;
+
+      if (beforeCount === afterCount) {
+        return false;
+      }
+    });
+
+    set((state) => ({
+      ...state,
+      selection:
+        state.selection.activeOverlayId === overlayId
+          ? {
+              ...state.selection,
+              activeOverlayId: null,
+              overlayIds: state.selection.overlayIds.filter(
+                (id) => id !== overlayId,
+              ),
+            }
           : state.selection,
     }));
   },
@@ -814,6 +1350,8 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         return false;
       }
 
+      const dimensions = getDimensionsByPreset(draft.settings.pitchPreset);
+
       const gk = Object.values(draft.entities).find(
         (entity) => isGoalkeeperEntity(entity) && entity.team === team,
       );
@@ -823,12 +1361,20 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         .filter((entity) => entity.team === team)
         .sort((a, b) => a.number - b.number);
 
-      const outfieldPositions = buildOutfieldPositions(formation, team);
+      const outfieldPositions = buildOutfieldPositions(
+        formation,
+        team,
+        dimensions,
+      );
 
       if (gk) {
+        const gkOffset = (8 / 105) * dimensions.width;
         frame.entityStates[gk.id] = {
           ...frame.entityStates[gk.id],
-          position: team === "home" ? { x: 8, y: 34 } : { x: 97, y: 34 },
+          position:
+            team === "home"
+              ? { x: gkOffset, y: dimensions.height / 2 }
+              : { x: dimensions.width - gkOffset, y: dimensions.height / 2 },
           rotation: frame.entityStates[gk.id]?.rotation ?? 0,
           visible: frame.entityStates[gk.id]?.visible ?? true,
         };
@@ -856,9 +1402,16 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         return state;
       }
 
-      const fromIndex = Math.max(0, getFrameIndex(state.frames, state.activeFrameId));
+      const fromIndex = Math.max(
+        0,
+        getFrameIndex(state.frames, state.activeFrameId),
+      );
       const fromFrameId = state.frames[fromIndex]?.id ?? state.frames[0].id;
-      const toFrameId = getNextFrameId(state.frames, fromFrameId, state.playback.loop);
+      const toFrameId = getNextFrameId(
+        state.frames,
+        fromFrameId,
+        state.playback.loop,
+      );
 
       if (!toFrameId) {
         return state;
@@ -924,7 +1477,11 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         progress -= 1;
         activeFrameId = toFrameId;
         fromFrameId = toFrameId;
-        toFrameId = getNextFrameId(state.frames, fromFrameId, state.playback.loop);
+        toFrameId = getNextFrameId(
+          state.frames,
+          fromFrameId,
+          state.playback.loop,
+        );
 
         if (!toFrameId) {
           isPlaying = false;
@@ -982,11 +1539,19 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         entities: deepClone(previous.entities),
         frames: deepClone(previous.frames),
         activeFrameId: previous.activeFrameId,
-        selection: { entityId: null, lineId: null },
+        selection: {
+          entityIds: [],
+          overlayIds: [],
+          activeEntityId: null,
+          activeOverlayId: null,
+        },
         history: {
           ...state.history,
           past: state.history.past.slice(0, -1),
-          future: [currentSnapshot, ...state.history.future].slice(0, state.history.limit),
+          future: [currentSnapshot, ...state.history.future].slice(
+            0,
+            state.history.limit,
+          ),
         },
         playback: resetPlayback(state.playback),
       };
@@ -1008,10 +1573,17 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         entities: deepClone(next.entities),
         frames: deepClone(next.frames),
         activeFrameId: next.activeFrameId,
-        selection: { entityId: null, lineId: null },
+        selection: {
+          entityIds: [],
+          overlayIds: [],
+          activeEntityId: null,
+          activeOverlayId: null,
+        },
         history: {
           ...state.history,
-          past: [...state.history.past, currentSnapshot].slice(-state.history.limit),
+          past: [...state.history.past, currentSnapshot].slice(
+            -state.history.limit,
+          ),
           future: remainingFuture,
         },
         playback: resetPlayback(state.playback),
@@ -1027,7 +1599,12 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
       entities: fresh.entities,
       frames: fresh.frames,
       activeFrameId: fresh.activeFrameId,
-      selection: { entityId: null, lineId: null },
+      selection: {
+        entityIds: [],
+        overlayIds: [],
+        activeEntityId: null,
+        activeOverlayId: null,
+      },
       history: {
         ...state.history,
         past: [],
@@ -1038,24 +1615,44 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
   },
 
   exportPlaybook: () => ({
-    version: 1,
+    version: 2,
     savedAt: new Date().toISOString(),
     board: snapshotFromState(get()),
   }),
 
   importPlaybook: (payload) => {
-    if (payload.version !== 1 || !payload.board) {
+    if (!payload.board || (payload.version !== 1 && payload.version !== 2)) {
       return;
     }
 
     const board = deepClone(payload.board);
+    const settings: BoardSettings = {
+      ...deepClone(DEFAULT_SETTINGS),
+      ...board.settings,
+      theme: "light",
+      pitchPreset: "football-105x68",
+      training: {
+        ...deepClone(DEFAULT_SETTINGS.training),
+        ...(board.settings.training ?? {}),
+      },
+    };
+    const frames: TimelineFrame[] = board.frames.map((frame) => ({
+      ...frame,
+      overlays: ensureFrameOverlays(frame),
+    }));
+
     set((state) => ({
       ...state,
-      settings: board.settings,
+      settings,
       entities: board.entities,
-      frames: board.frames,
+      frames,
       activeFrameId: board.activeFrameId,
-      selection: { entityId: null, lineId: null },
+      selection: {
+        entityIds: [],
+        overlayIds: [],
+        activeEntityId: null,
+        activeOverlayId: null,
+      },
       history: {
         ...state.history,
         past: [],
@@ -1074,7 +1671,7 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
       return {
         frameId: "",
         positions: {},
-        lines: [],
+        overlays: createEmptyOverlays(),
       };
     }
 
@@ -1091,7 +1688,8 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
 
         Object.values(state.entities).forEach((entity) => {
           const fromPoint =
-            fromFrame.entityStates[entity.id]?.position ?? entity.defaultPosition;
+            fromFrame.entityStates[entity.id]?.position ??
+            entity.defaultPosition;
           const toPoint =
             toFrame.entityStates[entity.id]?.position ?? fromPoint;
           positions[entity.id] = lerpPoint(fromPoint, toPoint, progress);
@@ -1100,7 +1698,7 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         return {
           frameId: fromFrame.id,
           positions,
-          lines: fromFrame.lines,
+          overlays: fromFrame.overlays,
         };
       }
     }
@@ -1108,7 +1706,7 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
     return {
       frameId: activeFrame.id,
       positions: getFramePositions(activeFrame, state.entities),
-      lines: activeFrame.lines,
+      overlays: activeFrame.overlays,
     };
   },
 }));

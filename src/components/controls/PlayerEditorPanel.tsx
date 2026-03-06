@@ -20,16 +20,25 @@ const inputClass =
 const cardClass =
   "rounded-3xl border border-slate-200/75 bg-gradient-to-b from-white/95 to-slate-50/90 p-4 shadow-[0_24px_70px_-30px_rgba(15,23,42,0.65)] backdrop-blur-xl";
 
-export function PlayerEditorPanel({ onClose, className }: PlayerEditorPanelProps) {
+export function PlayerEditorPanel({
+  onClose,
+  className,
+}: PlayerEditorPanelProps) {
   const entities = useTacticalBoardStore((state) => state.entities);
   const frames = useTacticalBoardStore((state) => state.frames);
   const activeFrameId = useTacticalBoardStore((state) => state.activeFrameId);
   const settings = useTacticalBoardStore((state) => state.settings);
 
-  const setBoardSettings = useTacticalBoardStore((state) => state.setBoardSettings);
+  const setBoardSettings = useTacticalBoardStore(
+    (state) => state.setBoardSettings,
+  );
   const updateEntity = useTacticalBoardStore((state) => state.updateEntity);
-  const removePlayerFromPitch = useTacticalBoardStore((state) => state.removePlayerFromPitch);
-  const returnPlayerToPitch = useTacticalBoardStore((state) => state.returnPlayerToPitch);
+  const removePlayerFromPitch = useTacticalBoardStore(
+    (state) => state.removePlayerFromPitch,
+  );
+  const returnPlayerToPitch = useTacticalBoardStore(
+    (state) => state.returnPlayerToPitch,
+  );
 
   const players = useMemo(
     () =>
@@ -56,7 +65,9 @@ export function PlayerEditorPanel({ onClose, className }: PlayerEditorPanelProps
   ).length;
 
   return (
-    <aside className={`${cardClass} w-[min(90vw,360px)] ${className ?? ""}`}>
+    <aside
+      className={`${cardClass} w-[min(90vw,360px)] overflow-hidden ${className ?? ""}`}
+    >
       <header className="mb-3 flex items-center justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -81,13 +92,17 @@ export function PlayerEditorPanel({ onClose, className }: PlayerEditorPanelProps
 
       <div className="mb-3 grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-          <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Casa</p>
+          <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">
+            Casa
+          </p>
           <p className="text-sm font-bold text-slate-900">
             {homeOnPitchCount}/{homePlayers.length} em campo
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-          <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Visitante</p>
+          <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">
+            Visitante
+          </p>
           <p className="text-sm font-bold text-slate-900">
             {awayOnPitchCount}/{awayPlayers.length} em campo
           </p>
@@ -102,9 +117,10 @@ export function PlayerEditorPanel({ onClose, className }: PlayerEditorPanelProps
           <span>Cor</span>
           <span>Status</span>
         </header>
-        <div className="max-h-[420px] overflow-y-auto">
+        <div className="max-h-[min(420px,calc(100vh-22rem))] overflow-y-auto">
           {players.map((player) => {
-            const isOnPitch = activeFrame?.entityStates[player.id]?.visible ?? true;
+            const isOnPitch =
+              activeFrame?.entityStates[player.id]?.visible ?? true;
             return (
               <div
                 key={player.id}
@@ -129,7 +145,10 @@ export function PlayerEditorPanel({ onClose, className }: PlayerEditorPanelProps
                 />
 
                 <div className="relative">
-                  <Shirt size={11} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Shirt
+                    size={11}
+                    className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
                   <input
                     className={`${inputClass} pl-6`}
                     type="number"
@@ -137,7 +156,8 @@ export function PlayerEditorPanel({ onClose, className }: PlayerEditorPanelProps
                     max={99}
                     value={player.number}
                     onChange={(event) => {
-                      const nextNumber = Number(event.target.value) || player.number;
+                      const nextNumber =
+                        Number(event.target.value) || player.number;
                       updateEntity(player.id, {
                         number: nextNumber,
                         label: String(nextNumber),
@@ -167,7 +187,9 @@ export function PlayerEditorPanel({ onClose, className }: PlayerEditorPanelProps
                       : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
                   }`}
                   onClick={() =>
-                    isOnPitch ? removePlayerFromPitch(player.id) : returnPlayerToPitch(player.id)
+                    isOnPitch
+                      ? removePlayerFromPitch(player.id)
+                      : returnPlayerToPitch(player.id)
                   }
                 >
                   {isOnPitch ? "Tirar" : "Colocar"}
@@ -187,7 +209,9 @@ export function PlayerEditorPanel({ onClose, className }: PlayerEditorPanelProps
           })
         }
       >
-        {settings.showPlayerNames ? "Ocultar nomes em campo" : "Mostrar nomes em campo"}
+        {settings.showPlayerNames
+          ? "Ocultar nomes em campo"
+          : "Mostrar nomes em campo"}
       </button>
     </aside>
   );

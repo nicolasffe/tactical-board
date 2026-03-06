@@ -19,10 +19,15 @@ export function RightProperties() {
   const updateLine = useTacticalBoardStore((state) => state.updateLine);
   const removeLine = useTacticalBoardStore((state) => state.removeLine);
 
-  const activeFrame = frames.find((frame) => frame.id === activeFrameId) ?? frames[0];
-  const selectedEntity = selection.entityId ? entities[selection.entityId] : null;
-  const selectedLine = selection.lineId
-    ? activeFrame?.lines.find((line) => line.id === selection.lineId) ?? null
+  const activeFrame =
+    frames.find((frame) => frame.id === activeFrameId) ?? frames[0];
+  const selectedEntity = selection.activeEntityId
+    ? entities[selection.activeEntityId]
+    : null;
+  const selectedLine = selection.activeOverlayId
+    ? (activeFrame?.overlays.lines.find(
+        (line) => line.id === selection.activeOverlayId,
+      ) ?? null)
     : null;
 
   return (
@@ -35,7 +40,9 @@ export function RightProperties() {
 
       {selectedEntity ? (
         <section className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Entidade Selecionada</p>
+          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+            Entidade Selecionada
+          </p>
 
           <div className="space-y-1">
             <label className="text-xs text-slate-400">Rótulo</label>
@@ -48,7 +55,8 @@ export function RightProperties() {
             />
           </div>
 
-          {(selectedEntity.kind === "player" || selectedEntity.kind === "goalkeeper") && (
+          {(selectedEntity.kind === "player" ||
+            selectedEntity.kind === "goalkeeper") && (
             <>
               <div className="space-y-1">
                 <label className="text-xs text-slate-400">Nome</label>
@@ -56,7 +64,9 @@ export function RightProperties() {
                   className={`${panelClass} w-full`}
                   value={selectedEntity.name}
                   onChange={(event) =>
-                    updateEntity(selectedEntity.id, { name: event.target.value })
+                    updateEntity(selectedEntity.id, {
+                      name: event.target.value,
+                    })
                   }
                 />
               </div>
@@ -70,8 +80,11 @@ export function RightProperties() {
                   value={selectedEntity.number}
                   onChange={(event) =>
                     updateEntity(selectedEntity.id, {
-                      number: Number(event.target.value) || selectedEntity.number,
-                      label: String(Number(event.target.value) || selectedEntity.number),
+                      number:
+                        Number(event.target.value) || selectedEntity.number,
+                      label: String(
+                        Number(event.target.value) || selectedEntity.number,
+                      ),
                     })
                   }
                 />
@@ -101,10 +114,15 @@ export function RightProperties() {
           </button>
         </section>
       ) : selectedLine ? (
-        <LineProperties line={selectedLine} onUpdate={updateLine} onDelete={removeLine} />
+        <LineProperties
+          line={selectedLine}
+          onUpdate={updateLine}
+          onDelete={removeLine}
+        />
       ) : (
         <section className="rounded-md border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-400">
-          Selecione um jogador, equipamento ou linha tática para editar os detalhes.
+          Selecione um jogador, equipamento ou linha tática para editar os
+          detalhes.
         </section>
       )}
     </aside>
@@ -120,7 +138,9 @@ interface LinePropertiesProps {
 function LineProperties({ line, onUpdate, onDelete }: LinePropertiesProps) {
   return (
     <section className="space-y-3">
-      <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Linha Selecionada</p>
+      <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+        Linha Selecionada
+      </p>
 
       <div className="space-y-1">
         <label className="text-xs text-slate-400">Tipo</label>
@@ -158,7 +178,9 @@ function LineProperties({ line, onUpdate, onDelete }: LinePropertiesProps) {
           max={2.2}
           step={0.1}
           value={line.width}
-          onChange={(event) => onUpdate(line.id, { width: Number(event.target.value) })}
+          onChange={(event) =>
+            onUpdate(line.id, { width: Number(event.target.value) })
+          }
         />
       </div>
 

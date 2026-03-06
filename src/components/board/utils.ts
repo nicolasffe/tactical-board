@@ -1,4 +1,12 @@
-import type { AnchorTarget, Id, PitchView, Point, TacticalEntity, TacticalLine } from "@/src/types";
+import type {
+  AnchorTarget,
+  Id,
+  PitchDimensions,
+  PitchView,
+  Point,
+  TacticalEntity,
+  TacticalLine,
+} from "@/src/types";
 import { PITCH_DIMENSIONS } from "@/src/types";
 
 export interface ViewBox {
@@ -8,19 +16,22 @@ export interface ViewBox {
   height: number;
 }
 
-export const getPitchViewBox = (pitchView: PitchView): ViewBox =>
+export const getPitchViewBox = (
+  pitchView: PitchView,
+  dimensions: PitchDimensions = PITCH_DIMENSIONS,
+): ViewBox =>
   pitchView === "full"
     ? {
         x: 0,
         y: 0,
-        width: PITCH_DIMENSIONS.width,
-        height: PITCH_DIMENSIONS.height,
+        width: dimensions.width,
+        height: dimensions.height,
       }
     : {
-        x: PITCH_DIMENSIONS.width / 2,
+        x: dimensions.width / 2,
         y: 0,
-        width: PITCH_DIMENSIONS.width / 2,
-        height: PITCH_DIMENSIONS.height,
+        width: dimensions.width / 2,
+        height: dimensions.height,
       };
 
 export const toPitchPoint = (
@@ -44,9 +55,12 @@ export const toPitchPoint = (
   };
 };
 
-export const clampPointToPitch = (point: Point): Point => ({
-  x: Math.max(0, Math.min(PITCH_DIMENSIONS.width, point.x)),
-  y: Math.max(0, Math.min(PITCH_DIMENSIONS.height, point.y)),
+export const clampPointToPitch = (
+  point: Point,
+  dimensions: PitchDimensions = PITCH_DIMENSIONS,
+): Point => ({
+  x: Math.max(0, Math.min(dimensions.width, point.x)),
+  y: Math.max(0, Math.min(dimensions.height, point.y)),
 });
 
 export const distance = (a: Point, b: Point): number =>
@@ -80,7 +94,8 @@ export const resolveAnchor = (
     return anchor.point;
   }
 
-  const entityPosition = positions[anchor.entityId] ?? entities[anchor.entityId]?.defaultPosition;
+  const entityPosition =
+    positions[anchor.entityId] ?? entities[anchor.entityId]?.defaultPosition;
   if (!entityPosition) {
     return { x: 0, y: 0 };
   }
@@ -111,8 +126,16 @@ const cubicPoint = (
   const t2 = t * t;
 
   return {
-    x: mt2 * mt * start.x + 3 * mt2 * t * cp1.x + 3 * mt * t2 * cp2.x + t2 * t * end.x,
-    y: mt2 * mt * start.y + 3 * mt2 * t * cp1.y + 3 * mt * t2 * cp2.y + t2 * t * end.y,
+    x:
+      mt2 * mt * start.x +
+      3 * mt2 * t * cp1.x +
+      3 * mt * t2 * cp2.x +
+      t2 * t * end.x,
+    y:
+      mt2 * mt * start.y +
+      3 * mt2 * t * cp1.y +
+      3 * mt * t2 * cp2.y +
+      t2 * t * end.y,
   };
 };
 
