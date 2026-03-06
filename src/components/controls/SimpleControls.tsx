@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Circle,
   DraftingCompass,
   Grid3X3,
   Highlighter,
@@ -11,6 +12,7 @@ import {
   RotateCcw,
   Send,
   Sparkles,
+  Triangle,
   Type,
   Undo2,
   Waves,
@@ -40,18 +42,22 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
   const activeTool = useTacticalBoardStore((state) => state.activeTool);
   const settings = useTacticalBoardStore((state) => state.settings);
   const history = useTacticalBoardStore((state) => state.history);
+  const entities = useTacticalBoardStore((state) => state.entities);
 
   const setActiveTool = useTacticalBoardStore((state) => state.setActiveTool);
   const setBoardSettings = useTacticalBoardStore(
     (state) => state.setBoardSettings,
   );
   const applyFormation = useTacticalBoardStore((state) => state.applyFormation);
+  const addEntity = useTacticalBoardStore((state) => state.addEntity);
+  const removeEntity = useTacticalBoardStore((state) => state.removeEntity);
   const undo = useTacticalBoardStore((state) => state.undo);
   const redo = useTacticalBoardStore((state) => state.redo);
   const resetBoard = useTacticalBoardStore((state) => state.resetBoard);
 
   const [team, setTeam] = useState<TeamSide>("home");
   const [formation, setFormation] = useState<FormationPreset>("4-3-3");
+  const [trainingSeed, setTrainingSeed] = useState(0);
 
   const onChangeMode = (mode: BoardMode) => {
     if (mode === "training") {
@@ -77,8 +83,79 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
     });
   };
 
+  const getTrainingAnchor = () => {
+    if (settings.training.focus === "half-defending") {
+      return { x: 26.25, y: 34 };
+    }
+
+    if (settings.training.focus === "half-attacking") {
+      return { x: 78.75, y: 34 };
+    }
+
+    return { x: 52.5, y: 34 };
+  };
+
+  const getNextTrainingPoint = () => {
+    const anchor = getTrainingAnchor();
+    const row = Math.floor(trainingSeed / 4) % 3;
+    const col = trainingSeed % 4;
+    return {
+      x: anchor.x - 6 + col * 4,
+      y: anchor.y - 6 + row * 6,
+    };
+  };
+
+  const addTrainingCone = () => {
+    addEntity({
+      kind: "cone",
+      position: getNextTrainingPoint(),
+    });
+    setTrainingSeed((current) => current + 1);
+  };
+
+  const addTrainingConeLine = () => {
+    const anchor = getTrainingAnchor();
+    Array.from({ length: 5 }, (_, index) => {
+      addEntity({
+        kind: "cone",
+        position: {
+          x: anchor.x,
+          y: anchor.y - 12 + index * 6,
+        },
+      });
+    });
+  };
+
+  const addTrainingMannequin = () => {
+    const anchor = getTrainingAnchor();
+    addEntity({
+      kind: "mannequin",
+      position: { x: anchor.x + 8, y: anchor.y },
+    });
+  };
+
+  const addTrainingBall = () => {
+    addEntity({
+      kind: "ball",
+      position: getTrainingAnchor(),
+    });
+  };
+
+  const clearTrainingEquipment = () => {
+    Object.values(entities)
+      .filter(
+        (entity) =>
+          entity.kind === "ball" ||
+          entity.kind === "cone" ||
+          entity.kind === "mannequin",
+      )
+      .forEach((entity) => {
+        removeEntity(entity.id);
+      });
+  };
+
   return (
-    <section className="max-h-[calc(100vh-7rem)] w-[min(90vw,380px)] overflow-y-auto rounded-2xl border border-white/80 bg-white/88 p-3 shadow-[0_24px_70px_-30px_rgba(15,23,42,0.65)] backdrop-blur-xl">
+    <section className="max-h-[calc(100vh-7rem)] w-[min(90vw,360px)] overflow-y-auto rounded-2xl border border-white/80 bg-white/88 p-3 shadow-[0_24px_70px_-30px_rgba(15,23,42,0.65)] backdrop-blur-xl">
       <div className="mb-2 flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
@@ -97,6 +174,95 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
         >
           <X size={14} />
         </button>
+      </div>
+
+      <div className={sectionClass}>
+        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+          Treino
+        </p>
+        <div className="grid grid-cols-2 gap-1.5">
+          <select
+            className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none"
+            value={settings.mode}
+            onChange={(event) => onChangeMode(event.target.value as BoardMode)}
+          >
+            <option value="match">Modo Jogo</option>
+            <option value="training">Modo Treino</option>
+          </select>
+
+          {settings.mode === "training" && (
+            <select
+              className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none"
+              value={settings.training.focus}
+              onChange={(event) =>
+                setBoardSettings({
+                  training: {
+                    ...settings.training,
+                    focus: event.target.value as typeof settings.training.focus,
+                  },
+                })
+              }
+            >
+              <option value="half-attacking">Meio Ofensivo</option>
+              <option value="half-defending">Meio Defensivo</option>
+              <option value="full">Campo Completo</option>
+            </select>
+          )}
+
+          {settings.mode === "training" && (
+            <select
+              className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none"
+              value={settings.training.visibleTeams[0] ?? "home"}
+              onChange={(event) =>
+                onChangeTrainingTeam(event.target.value as TeamSide)
+              }
+            >
+              <option value="home">Time Casa</option>
+              <option value="away">Time Visitante</option>
+            </select>
+          )}
+        </div>
+
+        {settings.mode === "training" && (
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              className={buttonClass}
+              onClick={addTrainingCone}
+            >
+              <Triangle size={13} />+ Cone
+            </button>
+            <button
+              type="button"
+              className={buttonClass}
+              onClick={addTrainingConeLine}
+            >
+              <Grid3X3 size={13} />
+              Linha Cones
+            </button>
+            <button
+              type="button"
+              className={buttonClass}
+              onClick={addTrainingMannequin}
+            >
+              <Grid3X3 size={13} />+ Manequim
+            </button>
+            <button
+              type="button"
+              className={buttonClass}
+              onClick={addTrainingBall}
+            >
+              <Circle size={13} />+ Bola
+            </button>
+            <button
+              type="button"
+              className="col-span-2 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2 text-xs font-semibold text-rose-700 shadow-sm transition hover:border-rose-300 hover:bg-rose-100"
+              onClick={clearTrainingEquipment}
+            >
+              Limpar equipamentos
+            </button>
+          </div>
+        )}
       </div>
 
       <div className={sectionClass}>
@@ -173,47 +339,9 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
 
       <div className={sectionClass}>
         <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-          Ações
-        </p>
-        <div className="grid grid-cols-3 gap-1.5">
-          <button
-            type="button"
-            className={buttonClass}
-            disabled={history.past.length === 0}
-            onClick={undo}
-          >
-            <Undo2 size={13} />
-            Desf.
-          </button>
-          <button
-            type="button"
-            className={buttonClass}
-            disabled={history.future.length === 0}
-            onClick={redo}
-          >
-            <Redo2 size={13} />
-            Ref.
-          </button>
-          <button type="button" className={buttonClass} onClick={resetBoard}>
-            <RotateCcw size={13} />
-            Reset
-          </button>
-        </div>
-      </div>
-
-      <div className={sectionClass}>
-        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
           Visual
         </p>
         <div className="grid grid-cols-2 gap-1.5">
-          <select
-            className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none"
-            value={settings.mode}
-            onChange={(event) => onChangeMode(event.target.value as BoardMode)}
-          >
-            <option value="match">Modo Jogo</option>
-            <option value="training">Modo Treino</option>
-          </select>
           <select
             className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none"
             value={settings.pitchStyle}
@@ -253,38 +381,17 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
             <MousePointer2 size={13} />
             {settings.showPlayerNames ? "Sem nomes" : "Com nomes"}
           </button>
+          <button
+            type="button"
+            className={buttonClass}
+            onClick={() =>
+              setBoardSettings({ snapToEntities: !settings.snapToEntities })
+            }
+          >
+            <MousePointer2 size={13} />
+            {settings.snapToEntities ? "Snap ON" : "Snap OFF"}
+          </button>
         </div>
-
-        {settings.mode === "training" && (
-          <div className="mt-2 grid grid-cols-2 gap-1.5">
-            <select
-              className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none"
-              value={settings.training.focus}
-              onChange={(event) =>
-                setBoardSettings({
-                  training: {
-                    ...settings.training,
-                    focus: event.target.value as typeof settings.training.focus,
-                  },
-                })
-              }
-            >
-              <option value="half-attacking">Meio Ofensivo</option>
-              <option value="half-defending">Meio Defensivo</option>
-              <option value="full">Campo Completo</option>
-            </select>
-            <select
-              className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none"
-              value={settings.training.visibleTeams[0] ?? "home"}
-              onChange={(event) =>
-                onChangeTrainingTeam(event.target.value as TeamSide)
-              }
-            >
-              <option value="home">Time Casa</option>
-              <option value="away">Time Visitante</option>
-            </select>
-          </div>
-        )}
       </div>
 
       <div className={sectionClass}>
@@ -319,6 +426,36 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
             onClick={() => applyFormation(team, formation)}
           >
             Aplicar
+          </button>
+        </div>
+      </div>
+
+      <div className={sectionClass}>
+        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+          Ações
+        </p>
+        <div className="grid grid-cols-3 gap-1.5">
+          <button
+            type="button"
+            className={buttonClass}
+            disabled={history.past.length === 0}
+            onClick={undo}
+          >
+            <Undo2 size={13} />
+            Desf.
+          </button>
+          <button
+            type="button"
+            className={buttonClass}
+            disabled={history.future.length === 0}
+            onClick={redo}
+          >
+            <Redo2 size={13} />
+            Ref.
+          </button>
+          <button type="button" className={buttonClass} onClick={resetBoard}>
+            <RotateCcw size={13} />
+            Reset
           </button>
         </div>
       </div>

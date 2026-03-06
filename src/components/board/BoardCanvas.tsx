@@ -201,6 +201,7 @@ const renderEntityShape = (
             height={entity.radius * 1.16}
             preserveAspectRatio="xMidYMid slice"
             clipPath={`url(#${avatarClipId})`}
+            className="pointer-events-none"
           />
         </>
       )}
@@ -211,6 +212,8 @@ const renderEntityShape = (
         fontWeight={700}
         fill="#f8fafc"
         transform={textTransform}
+        className="pointer-events-none"
+        style={{ userSelect: "none" }}
       >
         {"number" in entity ? entity.number : ""}
       </text>
@@ -575,6 +578,7 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
     entityId: Id,
   ) => {
     event.stopPropagation();
+    event.preventDefault();
     const svg = svgRef.current;
     if (!svg) {
       return;
@@ -860,7 +864,7 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
   };
 
   const selectedLine =
-    renderable.overlays.lines.find(
+    renderable.overlays?.lines?.find(
       (line) => line.id === selection.activeOverlayId,
     ) ?? null;
 
@@ -869,7 +873,7 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
       <svg
         ref={svgRef}
         viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-        className="h-full w-full touch-none"
+        className="h-full w-full touch-none select-none"
         onPointerDown={handleBoardPointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -888,7 +892,11 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
           </marker>
         </defs>
 
-        <g ref={boardLayerRef} transform={boardTransform}>
+        <g
+          ref={boardLayerRef}
+          transform={boardTransform}
+          style={{ userSelect: "none", WebkitUserSelect: "none" }}
+        >
           <PitchLayer
             dimensions={pitchDimensions}
             showGrid={settings.showGrid}
@@ -898,7 +906,7 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
           />
 
           <g>
-            {renderable.overlays.polygons.map((polygon) => {
+            {(renderable.overlays?.polygons ?? []).map((polygon) => {
               const points = polygon.points
                 .map((point) => `${point.x},${point.y}`)
                 .join(" ");
@@ -926,7 +934,7 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
           </g>
 
           <g>
-            {renderable.overlays.freehand.map((stroke) => (
+            {(renderable.overlays?.freehand ?? []).map((stroke) => (
               <polyline
                 key={stroke.id}
                 points={stroke.points
@@ -953,7 +961,7 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
           </g>
 
           <g>
-            {renderable.overlays.lines.map((line) => {
+            {(renderable.overlays?.lines ?? []).map((line) => {
               const start = resolveAnchor(
                 line.start,
                 renderable.positions,
@@ -1094,7 +1102,7 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
             })()}
 
           <g>
-            {renderable.overlays.texts.map((textItem) => (
+            {(renderable.overlays?.texts ?? []).map((textItem) => (
               <g
                 key={textItem.id}
                 transform={`translate(${textItem.position.x} ${textItem.position.y})`}
@@ -1178,6 +1186,10 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
                       )
                     }
                   >
+                    <circle
+                      r={Math.max(entity.radius * 1.45, 3)}
+                      fill="transparent"
+                    />
                     {renderEntityShape(entity, readableTextTransform)}
 
                     {showName && (
