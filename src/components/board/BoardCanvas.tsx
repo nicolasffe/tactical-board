@@ -76,6 +76,20 @@ const lerpPoint = (from: Point, to: Point, t: number): Point => ({
 const isPlayerEntity = (entity: TacticalEntity): entity is PlayerEntity =>
   entity.kind === "player" || entity.kind === "goalkeeper";
 
+const toSvgTextAnchor = (
+  align: "left" | "center" | "right",
+): "start" | "middle" | "end" => {
+  if (align === "left") {
+    return "start";
+  }
+
+  if (align === "right") {
+    return "end";
+  }
+
+  return "middle";
+};
+
 const renderEntityShape = (
   entity: TacticalEntity,
   textTransform?: string,
@@ -1128,7 +1142,7 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
                 <text
                   x={0}
                   y={0}
-                  textAnchor={textItem.align}
+                  textAnchor={toSvgTextAnchor(textItem.align)}
                   fontSize={textItem.fontSize}
                   fill={textItem.color}
                   fontWeight={600}
