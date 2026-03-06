@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Check,
   Circle,
   DraftingCompass,
   Grid3X3,
@@ -24,6 +25,7 @@ import { useTacticalBoardStore } from "@/src/store";
 import { FORMATION_PRESETS } from "@/src/types";
 import type {
   BoardMode,
+  DrawTool,
   FormationPreset,
   PitchStyle,
   TeamSide,
@@ -36,7 +38,11 @@ interface SimpleControlsProps {
 const sectionClass =
   "mt-2 rounded-xl border border-slate-200/85 bg-white/70 p-2";
 const buttonClass =
-  "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45";
+  "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45";
+const toolButtonClass =
+  "relative inline-flex h-9 items-center justify-center gap-1.5 overflow-hidden rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-300 will-change-transform hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.97]";
+const activeToolButtonClass =
+  "border-slate-400 bg-slate-100 text-slate-900 ring-1 ring-slate-300 shadow-[0_8px_20px_-16px_rgba(15,23,42,0.35)]";
 
 export function SimpleControls({ onClose }: SimpleControlsProps) {
   const activeTool = useTacticalBoardStore((state) => state.activeTool);
@@ -58,6 +64,15 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
   const [team, setTeam] = useState<TeamSide>("home");
   const [formation, setFormation] = useState<FormationPreset>("4-3-3");
   const [trainingSeed, setTrainingSeed] = useState(0);
+  const [clickedTool, setClickedTool] = useState<DrawTool | null>(null);
+
+  const handleToolSelect = (tool: DrawTool) => {
+    setClickedTool(tool);
+    setActiveTool(tool);
+    window.setTimeout(() => {
+      setClickedTool((current) => (current === tool ? null : current));
+    }, 220);
+  };
 
   const onChangeMode = (mode: BoardMode) => {
     if (mode === "training") {
@@ -272,67 +287,139 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
         <div className="grid grid-cols-3 gap-1.5">
           <button
             type="button"
-            className={`${buttonClass} ${activeTool === "select" ? "border-sky-300 bg-sky-50 text-sky-900" : ""}`}
-            onClick={() => setActiveTool("select")}
+            className={`${toolButtonClass} ${activeTool === "select" ? activeToolButtonClass : ""} ${clickedTool === "select" ? "tool-click-pop" : ""}`}
+            onClick={() => handleToolSelect("select")}
+            aria-pressed={activeTool === "select"}
           >
-            <MousePointer2 size={13} />
-            Sel.
+            {activeTool === "select" && (
+              <>
+                <span className="pointer-events-none absolute left-0 top-0 h-full w-1.5 rounded-l-lg bg-slate-200" />
+                <span className="absolute right-1.5 top-1.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm">
+                  <Check size={9} strokeWidth={3} />
+                </span>
+              </>
+            )}
+            <MousePointer2 size={13} className="relative z-10" />
+            <span className="relative z-10">Sel.</span>
           </button>
           <button
             type="button"
-            className={`${buttonClass} ${activeTool === "pass" ? "border-sky-300 bg-sky-50 text-sky-900" : ""}`}
-            onClick={() => setActiveTool("pass")}
+            className={`${toolButtonClass} ${activeTool === "pass" ? activeToolButtonClass : ""} ${clickedTool === "pass" ? "tool-click-pop" : ""}`}
+            onClick={() => handleToolSelect("pass")}
+            aria-pressed={activeTool === "pass"}
           >
-            <Send size={13} />
-            Passe
+            {activeTool === "pass" && (
+              <>
+                <span className="pointer-events-none absolute left-0 top-0 h-full w-1.5 rounded-l-lg bg-slate-200" />
+                <span className="absolute right-1.5 top-1.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm">
+                  <Check size={9} strokeWidth={3} />
+                </span>
+              </>
+            )}
+            <Send size={13} className="relative z-10" />
+            <span className="relative z-10">Passe</span>
           </button>
           <button
             type="button"
-            className={`${buttonClass} ${activeTool === "run" ? "border-sky-300 bg-sky-50 text-sky-900" : ""}`}
-            onClick={() => setActiveTool("run")}
+            className={`${toolButtonClass} ${activeTool === "run" ? activeToolButtonClass : ""} ${clickedTool === "run" ? "tool-click-pop" : ""}`}
+            onClick={() => handleToolSelect("run")}
+            aria-pressed={activeTool === "run"}
           >
-            <MoveRight size={13} />
-            Corr.
+            {activeTool === "run" && (
+              <>
+                <span className="pointer-events-none absolute left-0 top-0 h-full w-1.5 rounded-l-lg bg-slate-200" />
+                <span className="absolute right-1.5 top-1.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm">
+                  <Check size={9} strokeWidth={3} />
+                </span>
+              </>
+            )}
+            <MoveRight size={13} className="relative z-10" />
+            <span className="relative z-10">Corr.</span>
           </button>
           <button
             type="button"
-            className={`${buttonClass} ${activeTool === "dribble" ? "border-sky-300 bg-sky-50 text-sky-900" : ""}`}
-            onClick={() => setActiveTool("dribble")}
+            className={`${toolButtonClass} ${activeTool === "dribble" ? activeToolButtonClass : ""} ${clickedTool === "dribble" ? "tool-click-pop" : ""}`}
+            onClick={() => handleToolSelect("dribble")}
+            aria-pressed={activeTool === "dribble"}
           >
-            <Waves size={13} />
-            Drib.
+            {activeTool === "dribble" && (
+              <>
+                <span className="pointer-events-none absolute left-0 top-0 h-full w-1.5 rounded-l-lg bg-slate-200" />
+                <span className="absolute right-1.5 top-1.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm">
+                  <Check size={9} strokeWidth={3} />
+                </span>
+              </>
+            )}
+            <Waves size={13} className="relative z-10" />
+            <span className="relative z-10">Drib.</span>
           </button>
           <button
             type="button"
-            className={`${buttonClass} ${activeTool === "freehand" ? "border-sky-300 bg-sky-50 text-sky-900" : ""}`}
-            onClick={() => setActiveTool("freehand")}
+            className={`${toolButtonClass} ${activeTool === "freehand" ? activeToolButtonClass : ""} ${clickedTool === "freehand" ? "tool-click-pop" : ""}`}
+            onClick={() => handleToolSelect("freehand")}
+            aria-pressed={activeTool === "freehand"}
           >
-            <Highlighter size={13} />
-            Livre
+            {activeTool === "freehand" && (
+              <>
+                <span className="pointer-events-none absolute left-0 top-0 h-full w-1.5 rounded-l-lg bg-slate-200" />
+                <span className="absolute right-1.5 top-1.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm">
+                  <Check size={9} strokeWidth={3} />
+                </span>
+              </>
+            )}
+            <Highlighter size={13} className="relative z-10" />
+            <span className="relative z-10">Livre</span>
           </button>
           <button
             type="button"
-            className={`${buttonClass} ${activeTool === "polygon" ? "border-sky-300 bg-sky-50 text-sky-900" : ""}`}
-            onClick={() => setActiveTool("polygon")}
+            className={`${toolButtonClass} ${activeTool === "polygon" ? activeToolButtonClass : ""} ${clickedTool === "polygon" ? "tool-click-pop" : ""}`}
+            onClick={() => handleToolSelect("polygon")}
+            aria-pressed={activeTool === "polygon"}
           >
-            <DraftingCompass size={13} />
-            Zona
+            {activeTool === "polygon" && (
+              <>
+                <span className="pointer-events-none absolute left-0 top-0 h-full w-1.5 rounded-l-lg bg-slate-200" />
+                <span className="absolute right-1.5 top-1.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm">
+                  <Check size={9} strokeWidth={3} />
+                </span>
+              </>
+            )}
+            <DraftingCompass size={13} className="relative z-10" />
+            <span className="relative z-10">Zona</span>
           </button>
           <button
             type="button"
-            className={`${buttonClass} ${activeTool === "text" ? "border-sky-300 bg-sky-50 text-sky-900" : ""}`}
-            onClick={() => setActiveTool("text")}
+            className={`${toolButtonClass} ${activeTool === "text" ? activeToolButtonClass : ""} ${clickedTool === "text" ? "tool-click-pop" : ""}`}
+            onClick={() => handleToolSelect("text")}
+            aria-pressed={activeTool === "text"}
           >
-            <Type size={13} />
-            Texto
+            {activeTool === "text" && (
+              <>
+                <span className="pointer-events-none absolute left-0 top-0 h-full w-1.5 rounded-l-lg bg-slate-200" />
+                <span className="absolute right-1.5 top-1.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm">
+                  <Check size={9} strokeWidth={3} />
+                </span>
+              </>
+            )}
+            <Type size={13} className="relative z-10" />
+            <span className="relative z-10">Texto</span>
           </button>
           <button
             type="button"
-            className={`${buttonClass} ${activeTool === "lasso" ? "border-sky-300 bg-sky-50 text-sky-900" : ""}`}
-            onClick={() => setActiveTool("lasso")}
+            className={`${toolButtonClass} ${activeTool === "lasso" ? activeToolButtonClass : ""} ${clickedTool === "lasso" ? "tool-click-pop" : ""}`}
+            onClick={() => handleToolSelect("lasso")}
+            aria-pressed={activeTool === "lasso"}
           >
-            <ScanLine size={13} />
-            Lasso
+            {activeTool === "lasso" && (
+              <>
+                <span className="pointer-events-none absolute left-0 top-0 h-full w-1.5 rounded-l-lg bg-slate-200" />
+                <span className="absolute right-1.5 top-1.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm">
+                  <Check size={9} strokeWidth={3} />
+                </span>
+              </>
+            )}
+            <ScanLine size={13} className="relative z-10" />
+            <span className="relative z-10">Lasso</span>
           </button>
         </div>
       </div>
