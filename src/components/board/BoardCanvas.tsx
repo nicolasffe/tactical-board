@@ -259,6 +259,7 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
   const addFreehand = useTacticalBoardStore((state) => state.addFreehand);
   const addPolygon = useTacticalBoardStore((state) => state.addPolygon);
   const addText = useTacticalBoardStore((state) => state.addText);
+  const updateText = useTacticalBoardStore((state) => state.updateText);
   const updateLineControlPoint = useTacticalBoardStore(
     (state) => state.updateLineControlPoint,
   );
@@ -273,6 +274,15 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
   const [editingControlPoint, setEditingControlPoint] =
     useState<EditingControlPoint | null>(null);
   const [hoveredEntityId, setHoveredEntityId] = useState<Id | null>(null);
+  const [editingTextId, setEditingTextId] = useState<Id | null>(null);
+  const [editingTextValue, setEditingTextValue] = useState("");
+  const [textPointerDown, setTextPointerDown] = useState<{
+    textId: Id;
+    startClientX: number;
+    startClientY: number;
+  } | null>(null);
+  const [draggingTextId, setDraggingTextId] = useState<Id | null>(null);
+  const [dragTextPoint, setDragTextPoint] = useState<Point | null>(null);
 
   const isPortraitRotated = settings.orientation === "portrait-rotated";
   const pitchDimensions: PitchDimensions =
@@ -282,26 +292,6 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
     ? "scale(-1 1) rotate(-90)"
     : undefined;
   const viewBox = useMemo(() => {
-    if (isPortraitRotated && settings.mode === "training") {
-      if (settings.training.focus === "half-attacking") {
-        return {
-          x: 0,
-          y: 0,
-          width: pitchDimensions.height,
-          height: pitchDimensions.width / 2,
-        };
-      }
-
-      if (settings.training.focus === "half-defending") {
-        return {
-          x: 0,
-          y: pitchDimensions.width / 2,
-          width: pitchDimensions.height,
-          height: pitchDimensions.width / 2,
-        };
-      }
-    }
-
     if (isPortraitRotated) {
       return {
         x: 0,
@@ -312,33 +302,16 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
     }
 
     if (settings.mode === "training") {
-      if (settings.training.focus === "half-defending") {
-        return {
-          x: 0,
-          y: 0,
-          width: pitchDimensions.width / 2,
-          height: pitchDimensions.height,
-        };
-      }
-
-      if (settings.training.focus === "half-attacking") {
-        return {
-          x: pitchDimensions.width / 2,
-          y: 0,
-          width: pitchDimensions.width / 2,
-          height: pitchDimensions.height,
-        };
-      }
+      return {
+        x: 0,
+        y: 0,
+        width: pitchDimensions.width,
+        height: pitchDimensions.height,
+      };
     }
 
     return getPitchViewBox(settings.pitchView, pitchDimensions);
-  }, [
-    isPortraitRotated,
-    pitchDimensions,
-    settings.mode,
-    settings.pitchView,
-    settings.training.focus,
-  ]);
+  }, [isPortraitRotated, pitchDimensions, settings.mode, settings.pitchView]);
   const boardTransform = isPortraitRotated
     ? `translate(${pitchDimensions.height} ${pitchDimensions.width}) rotate(90) scale(-1 1)`
     : undefined;
@@ -563,9 +536,19 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
     }
 
     if (activeTool === "text") {
+      const typedText = window.prompt("Digite o texto", "Anotação");
+      if (typedText === null) {
+        return;
+      }
+
+      const sanitizedText = typedText.trim();
+      if (!sanitizedText) {
+        return;
+      }
+
       addText({
         position: point,
-        text: "Anotação",
+        text: sanitizedText,
         color: settings.pitchStyle === "minimal-light" ? "#0f172a" : "#f8fafc",
         fontSize: 2,
         align: "left",
@@ -660,6 +643,40 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
     svg.setPointerCapture(event.pointerId);
   };
 
+  const handleTextPointerDown = (
+    event: React.PointerEvent<SVGGElement>,
+    textId: Id,
+  ) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (activeTool !== "select") {
+      return;
+    }
+
+    const svg = svgRef.current;
+    if (!svg) {
+      return;
+    }
+
+    setSelection({
+      overlayIds: [textId],
+      activeOverlayId: textId,
+      entityIds: [],
+      activeEntityId: null,
+    });
+
+    setTextPointerDown({
+      textId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+    });
+    setDraggingTextId(null);
+    setDragTextPoint(null);
+
+    svg.setPointerCapture(event.pointerId);
+  };
+
   const handlePointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
     const svg = svgRef.current;
     if (!svg) {
@@ -682,6 +699,22 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
 
     if (draggingEntityId) {
       setDragPoint(point);
+      return;
+    }
+
+    if (textPointerDown) {
+      if (!draggingTextId) {
+        const moveDistance = distance(
+          { x: textPointerDown.startClientX, y: textPointerDown.startClientY },
+          { x: event.clientX, y: event.clientY },
+        );
+        if (moveDistance >= 4) {
+          setDraggingTextId(textPointerDown.textId);
+          setDragTextPoint(point);
+        }
+      } else {
+        setDragTextPoint(point);
+      }
       return;
     }
 
@@ -763,6 +796,25 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
       ) {
         moveEntity(draggingEntityId, dragPoint);
       }
+    }
+
+    if (textPointerDown) {
+      if (draggingTextId && dragTextPoint) {
+        updateText(draggingTextId, { position: dragTextPoint });
+      } else {
+        const targetText = (renderable.overlays?.texts ?? []).find(
+          (textItem) => textItem.id === textPointerDown.textId,
+        );
+        if (targetText) {
+          setEditingTextId(targetText.id);
+          setEditingTextValue(targetText.text);
+        }
+      }
+
+      setTextPointerDown(null);
+      setDraggingTextId(null);
+      setDragTextPoint(null);
+      return;
     }
 
     if (multiDrag) {
@@ -881,6 +933,21 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
     renderable.overlays?.lines?.find(
       (line) => line.id === selection.activeOverlayId,
     ) ?? null;
+
+  const commitInlineTextEdit = (textId: Id) => {
+    const sanitizedText = editingTextValue.trim();
+    if (sanitizedText) {
+      updateText(textId, { text: sanitizedText });
+    }
+
+    setEditingTextId(null);
+    setEditingTextValue("");
+  };
+
+  const cancelInlineTextEdit = () => {
+    setEditingTextId(null);
+    setEditingTextValue("");
+  };
 
   return (
     <div className="h-full w-full">
@@ -1117,39 +1184,85 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
 
           <g>
             {(renderable.overlays?.texts ?? []).map((textItem) => (
+              (() => {
+                const textPosition =
+                  draggingTextId === textItem.id && dragTextPoint
+                    ? dragTextPoint
+                    : textItem.position;
+
+                return (
               <g
                 key={textItem.id}
-                transform={`translate(${textItem.position.x} ${textItem.position.y})`}
-                className="cursor-pointer"
-                onPointerDown={(event) => {
-                  event.stopPropagation();
-                  setSelection({
-                    overlayIds: [textItem.id],
-                    activeOverlayId: textItem.id,
-                    entityIds: [],
-                    activeEntityId: null,
-                  });
-                }}
+                transform={`translate(${textPosition.x} ${textPosition.y})`}
+                className="cursor-grab active:cursor-grabbing"
+                onPointerDown={(event) => handleTextPointerDown(event, textItem.id)}
               >
-                <rect
-                  x={-0.5}
-                  y={-2}
-                  width={Math.max(7, textItem.text.length * 1.08)}
-                  height={3}
-                  rx={0.5}
-                  fill="rgba(15,23,42,0.45)"
-                />
-                <text
-                  x={0}
-                  y={0}
-                  textAnchor={toSvgTextAnchor(textItem.align)}
-                  fontSize={textItem.fontSize}
-                  fill={textItem.color}
-                  fontWeight={600}
-                >
-                  {textItem.text}
-                </text>
+                <g transform={readableTextTransform}>
+                  <rect
+                    x={-0.5}
+                    y={-2}
+                    width={Math.max(7, textItem.text.length * 1.08)}
+                    height={3}
+                    rx={0.5}
+                    fill="rgba(15,23,42,0.45)"
+                  />
+                  <text
+                    x={0}
+                    y={0}
+                    textAnchor={toSvgTextAnchor(textItem.align)}
+                    fontSize={textItem.fontSize}
+                    fill={textItem.color}
+                    fontWeight={600}
+                    style={{
+                      display: editingTextId === textItem.id ? "none" : "inline",
+                    }}
+                  >
+                    {textItem.text}
+                  </text>
+                  {editingTextId === textItem.id && (
+                    <foreignObject
+                      x={-0.5}
+                      y={-2}
+                      width={Math.max(14, textItem.text.length * 1.5)}
+                      height={3.2}
+                      onPointerDown={(event) => event.stopPropagation()}
+                    >
+                      <input
+                        autoFocus
+                        value={editingTextValue}
+                        onChange={(event) => setEditingTextValue(event.target.value)}
+                        onBlur={() => commitInlineTextEdit(textItem.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            commitInlineTextEdit(textItem.id);
+                            return;
+                          }
+
+                          if (event.key === "Escape") {
+                            event.preventDefault();
+                            cancelInlineTextEdit();
+                          }
+                        }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          border: "1px solid rgba(255,255,255,0.45)",
+                          borderRadius: "6px",
+                          background: "rgba(15,23,42,0.75)",
+                          color: textItem.color,
+                          fontSize: `${textItem.fontSize * 5.4}px`,
+                          fontWeight: 600,
+                          outline: "none",
+                          padding: "0 6px",
+                        }}
+                      />
+                    </foreignObject>
+                  )}
+                </g>
               </g>
+                );
+              })()
             ))}
           </g>
 
@@ -1180,6 +1293,10 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
                   (entity.kind === "player" || entity.kind === "goalkeeper"
                     ? hoveredEntityId === entity.id
                     : false);
+                const mobileConeTransform =
+                  isPortraitRotated && entity.kind === "cone"
+                    ? "rotate(90)"
+                    : undefined;
 
                 return (
                   <g
@@ -1204,7 +1321,9 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
                       r={Math.max(entity.radius * 1.45, 3)}
                       fill="transparent"
                     />
-                    {renderEntityShape(entity, readableTextTransform)}
+                    <g transform={mobileConeTransform}>
+                      {renderEntityShape(entity, readableTextTransform)}
+                    </g>
 
                     {showName && (
                       <text

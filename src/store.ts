@@ -57,7 +57,7 @@ const DEFAULT_SETTINGS: BoardSettings = {
   showPlayerNames: false,
   snapToEntities: true,
   training: {
-    focus: "half-attacking",
+    focus: "full",
     visibleTeams: ["home"],
     emphasizeEquipment: true,
   },
@@ -649,8 +649,6 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
       const previousPreset = draft.settings.pitchPreset;
       const normalizedUpdates: Partial<BoardSettings> = {
         ...updates,
-        pitchPreset: "football-105x68",
-        theme: "light",
       };
 
       draft.settings = {
@@ -1535,7 +1533,10 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
 
       return {
         ...state,
-        settings: deepClone(previous.settings),
+        settings: {
+          ...deepClone(previous.settings),
+          orientation: state.settings.orientation,
+        },
         entities: deepClone(previous.entities),
         frames: deepClone(previous.frames),
         activeFrameId: previous.activeFrameId,
@@ -1569,7 +1570,10 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
 
       return {
         ...state,
-        settings: deepClone(next.settings),
+        settings: {
+          ...deepClone(next.settings),
+          orientation: state.settings.orientation,
+        },
         entities: deepClone(next.entities),
         frames: deepClone(next.frames),
         activeFrameId: next.activeFrameId,
@@ -1595,7 +1599,10 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
     const fresh = createInitialSnapshot();
     set((state) => ({
       ...state,
-      settings: fresh.settings,
+      settings: {
+        ...fresh.settings,
+        orientation: state.settings.orientation,
+      },
       entities: fresh.entities,
       frames: fresh.frames,
       activeFrameId: fresh.activeFrameId,

@@ -12,6 +12,8 @@ const penaltyAreaWidth = 16.5;
 const penaltyAreaHeight = 40.32;
 const goalAreaWidth = 5.5;
 const goalAreaHeight = 18.32;
+const goalFrameDepth = 2;
+const goalFrameWidth = 7.32;
 const centerCircleRadius = 9.15;
 
 interface PitchPalette {
@@ -85,6 +87,8 @@ export function PitchLayer({
   const scaledPenaltyAreaHeight = penaltyAreaHeight * scaleY;
   const scaledGoalAreaWidth = goalAreaWidth * scaleX;
   const scaledGoalAreaHeight = goalAreaHeight * scaleY;
+  const scaledGoalFrameDepth = goalFrameDepth * scaleX;
+  const scaledGoalFrameWidth = goalFrameWidth * scaleY;
   const scaledCenterCircleRadius =
     centerCircleRadius * Math.min(scaleX, scaleY);
   const scaledPenaltySpotDistance = 11 * scaleX;
@@ -194,6 +198,19 @@ export function PitchLayer({
           cy={height / 2}
           r={0.45}
           fill={palette.markings}
+        />
+
+        <rect
+          x={0.8}
+          y={(height - scaledGoalFrameWidth) / 2}
+          width={scaledGoalFrameDepth}
+          height={scaledGoalFrameWidth}
+        />
+        <rect
+          x={width - scaledGoalFrameDepth - 0.8}
+          y={(height - scaledGoalFrameWidth) / 2}
+          width={scaledGoalFrameDepth}
+          height={scaledGoalFrameWidth}
         />
       </g>
 

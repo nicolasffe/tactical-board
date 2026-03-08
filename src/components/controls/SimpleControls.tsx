@@ -78,8 +78,10 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
     if (mode === "training") {
       setBoardSettings({
         mode,
+        pitchView: "full",
         training: {
           ...settings.training,
+          focus: "full",
           visibleTeams: [settings.training.visibleTeams[0] ?? "home"],
         },
       });
@@ -99,14 +101,6 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
   };
 
   const getTrainingAnchor = () => {
-    if (settings.training.focus === "half-defending") {
-      return { x: 26.25, y: 34 };
-    }
-
-    if (settings.training.focus === "half-attacking") {
-      return { x: 78.75, y: 34 };
-    }
-
     return { x: 52.5, y: 34 };
   };
 
@@ -204,25 +198,6 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
             <option value="match">Modo Jogo</option>
             <option value="training">Modo Treino</option>
           </select>
-
-          {settings.mode === "training" && (
-            <select
-              className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none"
-              value={settings.training.focus}
-              onChange={(event) =>
-                setBoardSettings({
-                  training: {
-                    ...settings.training,
-                    focus: event.target.value as typeof settings.training.focus,
-                  },
-                })
-              }
-            >
-              <option value="half-attacking">Meio Ofensivo</option>
-              <option value="half-defending">Meio Defensivo</option>
-              <option value="full">Campo Completo</option>
-            </select>
-          )}
 
           {settings.mode === "training" && (
             <select
