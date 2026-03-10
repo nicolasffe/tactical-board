@@ -1183,7 +1183,7 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
             })()}
 
           <g>
-            {(renderable.overlays?.texts ?? []).map((textItem) => (
+            {(renderable.overlays?.texts ?? []).map((textItem) =>
               (() => {
                 const textPosition =
                   draggingTextId === textItem.id && dragTextPoint
@@ -1191,79 +1191,84 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
                     : textItem.position;
 
                 return (
-              <g
-                key={textItem.id}
-                transform={`translate(${textPosition.x} ${textPosition.y})`}
-                className="cursor-grab active:cursor-grabbing"
-                onPointerDown={(event) => handleTextPointerDown(event, textItem.id)}
-              >
-                <g transform={readableTextTransform}>
-                  <rect
-                    x={-0.5}
-                    y={-2}
-                    width={Math.max(7, textItem.text.length * 1.08)}
-                    height={3}
-                    rx={0.5}
-                    fill="rgba(15,23,42,0.45)"
-                  />
-                  <text
-                    x={0}
-                    y={0}
-                    textAnchor={toSvgTextAnchor(textItem.align)}
-                    fontSize={textItem.fontSize}
-                    fill={textItem.color}
-                    fontWeight={600}
-                    style={{
-                      display: editingTextId === textItem.id ? "none" : "inline",
-                    }}
+                  <g
+                    key={textItem.id}
+                    transform={`translate(${textPosition.x} ${textPosition.y})`}
+                    className="cursor-grab active:cursor-grabbing"
+                    onPointerDown={(event) =>
+                      handleTextPointerDown(event, textItem.id)
+                    }
                   >
-                    {textItem.text}
-                  </text>
-                  {editingTextId === textItem.id && (
-                    <foreignObject
-                      x={-0.5}
-                      y={-2}
-                      width={Math.max(14, textItem.text.length * 1.5)}
-                      height={3.2}
-                      onPointerDown={(event) => event.stopPropagation()}
-                    >
-                      <input
-                        autoFocus
-                        value={editingTextValue}
-                        onChange={(event) => setEditingTextValue(event.target.value)}
-                        onBlur={() => commitInlineTextEdit(textItem.id)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            event.preventDefault();
-                            commitInlineTextEdit(textItem.id);
-                            return;
-                          }
-
-                          if (event.key === "Escape") {
-                            event.preventDefault();
-                            cancelInlineTextEdit();
-                          }
-                        }}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          border: "1px solid rgba(255,255,255,0.45)",
-                          borderRadius: "6px",
-                          background: "rgba(15,23,42,0.75)",
-                          color: textItem.color,
-                          fontSize: `${textItem.fontSize * 5.4}px`,
-                          fontWeight: 600,
-                          outline: "none",
-                          padding: "0 6px",
-                        }}
+                    <g transform={readableTextTransform}>
+                      <rect
+                        x={-0.5}
+                        y={-2}
+                        width={Math.max(7, textItem.text.length * 1.08)}
+                        height={3}
+                        rx={0.5}
+                        fill="rgba(15,23,42,0.45)"
                       />
-                    </foreignObject>
-                  )}
-                </g>
-              </g>
+                      <text
+                        x={0}
+                        y={0}
+                        textAnchor={toSvgTextAnchor(textItem.align)}
+                        fontSize={textItem.fontSize}
+                        fill={textItem.color}
+                        fontWeight={600}
+                        style={{
+                          display:
+                            editingTextId === textItem.id ? "none" : "inline",
+                        }}
+                      >
+                        {textItem.text}
+                      </text>
+                      {editingTextId === textItem.id && (
+                        <foreignObject
+                          x={-0.5}
+                          y={-2}
+                          width={Math.max(14, textItem.text.length * 1.5)}
+                          height={3.2}
+                          onPointerDown={(event) => event.stopPropagation()}
+                        >
+                          <input
+                            autoFocus
+                            value={editingTextValue}
+                            onChange={(event) =>
+                              setEditingTextValue(event.target.value)
+                            }
+                            onBlur={() => commitInlineTextEdit(textItem.id)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                event.preventDefault();
+                                commitInlineTextEdit(textItem.id);
+                                return;
+                              }
+
+                              if (event.key === "Escape") {
+                                event.preventDefault();
+                                cancelInlineTextEdit();
+                              }
+                            }}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              border: "1px solid rgba(255,255,255,0.45)",
+                              borderRadius: "6px",
+                              background: "rgba(15,23,42,0.75)",
+                              color: textItem.color,
+                              fontSize: `${textItem.fontSize * 5.4}px`,
+                              fontWeight: 600,
+                              outline: "none",
+                              padding: "0 6px",
+                            }}
+                          />
+                        </foreignObject>
+                      )}
+                    </g>
+                  </g>
                 );
-              })()
-            ))}
+              })(),
+            )}
           </g>
 
           {lassoRect &&
