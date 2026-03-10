@@ -195,6 +195,9 @@ export default function TacticalBoard() {
                 type="button"
                 className="absolute bottom-4 right-4 z-20 inline-flex h-12 w-12 items-center justify-center rounded-full border border-rose-300/90 bg-rose-500 text-white shadow-[0_18px_40px_-18px_rgba(225,29,72,0.75)] transition hover:bg-rose-600"
                 onClick={() => {
+                  if (!selection.activeOverlayId) {
+                    return;
+                  }
                   removeOverlayById(selection.activeOverlayId);
                   clearSelection();
                 }}
