@@ -3,6 +3,7 @@
 import {
   Check,
   Circle,
+  Download,
   DraftingCompass,
   Grid3X3,
   Highlighter,
@@ -13,9 +14,11 @@ import {
   RotateCcw,
   Send,
   Sparkles,
+  StopCircle,
   Triangle,
   Type,
   Undo2,
+  Video,
   Waves,
   X,
 } from "lucide-react";
@@ -33,6 +36,12 @@ import type {
 
 interface SimpleControlsProps {
   onClose: () => void;
+  onToggleRecording: () => void | Promise<void>;
+  onSaveRecording: () => void;
+  isRecording: boolean;
+  isPreparingRecording: boolean;
+  isRecordingSupported: boolean;
+  hasSavedRecording: boolean;
 }
 
 const sectionClass =
@@ -44,7 +53,15 @@ const toolButtonClass =
 const activeToolButtonClass =
   "border-slate-400 bg-slate-100 text-slate-900 ring-1 ring-slate-300 shadow-[0_8px_20px_-16px_rgba(15,23,42,0.35)]";
 
-export function SimpleControls({ onClose }: SimpleControlsProps) {
+export function SimpleControls({
+  onClose,
+  onToggleRecording,
+  onSaveRecording,
+  isRecording,
+  isPreparingRecording,
+  isRecordingSupported,
+  hasSavedRecording,
+}: SimpleControlsProps) {
   const activeTool = useTacticalBoardStore((state) => state.activeTool);
   const settings = useTacticalBoardStore((state) => state.settings);
   const history = useTacticalBoardStore((state) => state.history);
@@ -520,6 +537,38 @@ export function SimpleControls({ onClose }: SimpleControlsProps) {
             Reset
           </button>
         </div>
+
+        <button
+          type="button"
+          className={`mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border px-2 text-xs font-semibold shadow-sm transition ${
+            isRecording
+              ? "border-rose-300 bg-rose-50 text-rose-700 hover:border-rose-400 hover:bg-rose-100"
+              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+          } disabled:cursor-not-allowed disabled:opacity-45`}
+          disabled={
+            !isRecordingSupported || (isPreparingRecording && !isRecording)
+          }
+          onClick={() => {
+            void onToggleRecording();
+          }}
+        >
+          {isRecording ? <StopCircle size={13} /> : <Video size={13} />}
+          {isRecording
+            ? "Stop Recording"
+            : isPreparingRecording
+              ? "Preparing..."
+              : "Record Play"}
+        </button>
+
+        <button
+          type="button"
+          className="mt-1.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+          disabled={!hasSavedRecording || isRecording || isPreparingRecording}
+          onClick={onSaveRecording}
+        >
+          <Download size={13} />
+          Salvar jogada
+        </button>
       </div>
     </section>
   );

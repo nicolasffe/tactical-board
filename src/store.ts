@@ -81,6 +81,8 @@ interface TacticalBoardStore {
   selection: BoardSelection;
   history: BoardHistory;
   playback: PlaybackState;
+  isRecording: boolean;
+  countdown: number | null;
   setActiveTool: (tool: TacticalBoardStore["activeTool"]) => void;
   setSelection: (selection: Partial<BoardSelection>) => void;
   clearSelection: () => void;
@@ -149,6 +151,8 @@ interface TacticalBoardStore {
   tickPlayback: (deltaMs: number) => void;
   toggleLoop: () => void;
   setPlaybackSpeed: (speed: number) => void;
+  startRecording: () => void;
+  stopRecording: () => void;
   undo: () => void;
   redo: () => void;
   resetBoard: () => void;
@@ -605,6 +609,8 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
     limit: HISTORY_LIMIT,
   },
   playback: deepClone(DEFAULT_PLAYBACK),
+  isRecording: false,
+  countdown: null,
 
   setActiveTool: (tool) => {
     set((state) => ({
@@ -1519,6 +1525,21 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         ...state.playback,
         speed: clamp(speed, 0.25, 3),
       },
+    }));
+  },
+
+  startRecording: () => {
+    set((state) => ({
+      ...state,
+      isRecording: true,
+    }));
+  },
+
+  stopRecording: () => {
+    set((state) => ({
+      ...state,
+      isRecording: false,
+      countdown: null,
     }));
   },
 
