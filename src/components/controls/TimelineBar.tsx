@@ -14,7 +14,7 @@ import {
 import { useTacticalBoardStore } from "@/src/store";
 
 const iconButtonClass =
-  "inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45";
+  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45";
 
 interface TimelineBarProps {
   onExportGif?: () => void;
@@ -126,7 +126,7 @@ export function TimelineBar({
         {onExportGif ? (
           <button
             type="button"
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45 sm:text-xs"
             onClick={onExportGif}
             disabled={isExportingGif}
             title="Exportar animacao em GIF"
@@ -136,9 +136,9 @@ export function TimelineBar({
           </button>
         ) : null}
 
-        <div className="ml-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+        <div className="flex w-full items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:ml-auto sm:w-auto sm:justify-normal">
           <input
-            className="h-1.5 w-20 accent-sky-500"
+            className="h-1.5 flex-1 accent-sky-500 sm:w-20 sm:flex-none"
             type="range"
             min={0.5}
             max={2}
@@ -153,30 +153,34 @@ export function TimelineBar({
         </div>
       </div>
 
-      <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-0.5">
-        {frames.map((frame, index) => {
-          const isActive = frame.id === activeFrameId;
-          return (
-            <button
-              key={frame.id}
-              type="button"
-              onClick={() => setActiveFrame(frame.id)}
-              className={`min-w-[76px] rounded-2xl border px-3 py-2 text-left transition ${
-                isActive
-                  ? "border-sky-200 bg-sky-50 text-sky-700"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-              }`}
-            >
-              <p className="text-[10px] font-semibold">#{index + 1}</p>
-              <p className="truncate text-[10px]">{frame.name}</p>
-            </button>
-          );
-        })}
+      <div className="mt-2 flex flex-wrap items-start gap-2">
+        <div className="min-w-0 flex-1 overflow-x-auto pb-0.5">
+          <div className="flex items-center gap-2">
+            {frames.map((frame, index) => {
+              const isActive = frame.id === activeFrameId;
+              return (
+                <button
+                  key={frame.id}
+                  type="button"
+                  onClick={() => setActiveFrame(frame.id)}
+                  className={`min-w-[76px] shrink-0 rounded-2xl border px-3 py-2 text-left transition ${
+                    isActive
+                      ? "border-sky-200 bg-sky-50 text-sky-700"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                  }`}
+                >
+                  <p className="text-[10px] font-semibold">#{index + 1}</p>
+                  <p className="truncate text-[10px]">{frame.name}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {activeFrame && (
-          <div className="ml-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+          <div className="flex w-full items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:ml-auto sm:w-auto sm:justify-normal">
             <input
-              className="h-8 w-20 rounded-xl border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none focus:border-sky-300"
+              className="h-8 flex-1 rounded-xl border border-slate-200 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-sky-300 sm:w-20 sm:flex-none sm:text-xs"
               type="number"
               min={300}
               max={10000}

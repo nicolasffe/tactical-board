@@ -44,16 +44,16 @@ interface SimpleControlsProps {
 }
 
 const panelClass =
-  "max-h-[calc(100vh-2rem)] w-[min(92vw,340px)] overflow-y-auto rounded-[28px] border border-white/75 bg-white/90 p-3 shadow-[0_28px_72px_-38px_rgba(15,23,42,0.42)] ring-1 ring-slate-200/60 backdrop-blur-2xl";
+  "max-h-[min(calc(100svh-5.5rem),48rem)] w-[min(calc(100vw-1rem),340px)] max-w-full overflow-y-auto rounded-[24px] border border-white/75 bg-white/90 p-2.5 shadow-[0_28px_72px_-38px_rgba(15,23,42,0.42)] ring-1 ring-slate-200/60 backdrop-blur-2xl sm:max-h-[calc(100svh-2rem)] sm:rounded-[28px] sm:p-3";
 
 const sectionClass =
-  "rounded-[22px] border border-slate-200/80 bg-slate-50/80 p-3";
+  "rounded-[20px] border border-slate-200/80 bg-slate-50/80 p-2.5 sm:rounded-[22px] sm:p-3";
 
 const inputClass =
-  "h-10 w-full rounded-2xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+  "h-10 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100 sm:text-xs";
 
 const subtleButtonClass =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45";
+  "inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45 sm:text-xs";
 
 const activeSubtleButtonClass =
   "border-sky-200 bg-sky-50 text-sky-700";
@@ -220,7 +220,7 @@ export function SimpleControls({
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
             Painel
           </p>
-          <h2 className="truncate text-sm font-bold text-slate-950">
+          <h2 className="truncate text-sm font-bold text-slate-950 sm:text-[15px]">
             Ferramentas
           </h2>
         </div>
@@ -526,10 +526,12 @@ function SectionCard({ icon: Icon, title, children }: SectionCardProps) {
   return (
     <section className={sectionClass}>
       <div className="mb-2 flex items-center gap-2">
-        <div className="inline-flex h-8 w-8 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600">
+        <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600">
           <Icon size={14} />
         </div>
-        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+        <h3 className="min-w-0 truncate text-sm font-semibold text-slate-900">
+          {title}
+        </h3>
       </div>
       {children}
     </section>
@@ -585,10 +587,10 @@ function ActionButton({ icon: Icon, label, onClick }: ActionButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+      className="inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-center text-[11px] font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:text-xs"
     >
-      <Icon size={14} />
-      {label}
+      <Icon size={14} className="shrink-0" />
+      <span className="truncate">{label}</span>
     </button>
   );
 }
@@ -612,8 +614,8 @@ function ToggleButton({
       onClick={onClick}
       className={`${subtleButtonClass} ${active ? activeSubtleButtonClass : ""}`}
     >
-      <Icon size={14} />
-      {label}
+      <Icon size={14} className="shrink-0" />
+      <span className="truncate">{label}</span>
     </button>
   );
 }
@@ -637,7 +639,7 @@ function ToolTile({
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex min-h-[66px] flex-col items-start justify-between overflow-hidden rounded-[20px] border px-3 py-2.5 text-left shadow-sm transition-all duration-200 ${
+      className={`relative flex min-h-[58px] flex-col items-start justify-between overflow-hidden rounded-[18px] border px-2.5 py-2 text-left shadow-sm transition-all duration-200 sm:min-h-[66px] sm:rounded-[20px] sm:px-3 sm:py-2.5 ${
         active
           ? "border-sky-200 bg-sky-50 text-sky-700"
           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
@@ -653,7 +655,9 @@ function ToolTile({
         <Icon size={15} />
       </div>
 
-      <span className="text-xs font-semibold">{shortLabel}</span>
+      <span className="text-[11px] font-semibold leading-tight sm:text-xs">
+        {shortLabel}
+      </span>
     </button>
   );
 }

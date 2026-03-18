@@ -245,10 +245,10 @@ export function BottomPlayerPanel({
 
   return (
     <aside
-      className={`w-[min(95vw,980px)] rounded-[26px] border border-white/75 bg-white/88 p-2.5 shadow-[0_28px_72px_-36px_rgba(15,23,42,0.42)] ring-1 ring-slate-200/60 backdrop-blur-2xl ${className ?? ""}`}
+      className={`w-[min(calc(100vw-1rem),980px)] rounded-[24px] border border-white/75 bg-white/88 p-2 shadow-[0_28px_72px_-36px_rgba(15,23,42,0.42)] ring-1 ring-slate-200/60 backdrop-blur-2xl sm:rounded-[26px] sm:p-2.5 ${className ?? ""}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <div className="inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1 shadow-sm">
             <TabButton
               label="Casa"
@@ -273,7 +273,7 @@ export function BottomPlayerPanel({
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:flex-wrap sm:justify-normal">
           <IconButton
             title={settings.showPlayerNames ? "Ocultar nomes" : "Mostrar nomes"}
             onClick={() =>
@@ -305,7 +305,7 @@ export function BottomPlayerPanel({
         </div>
       </div>
 
-      <div className="mt-2 flex gap-2 overflow-x-auto pb-0.5">
+      <div className="mt-2 flex gap-2 overflow-x-auto pb-0.5 pr-0.5">
         {filteredPlayers.map((player) => {
           const isOnPitch = activeFrame?.entityStates[player.id]?.visible ?? true;
           const canEnterDirectly =
@@ -329,7 +329,7 @@ export function BottomPlayerPanel({
                   handlePlayerCardClick(player);
                 }
               }}
-              className={`group min-w-[142px] rounded-[22px] border px-3 py-2.5 text-left transition-all duration-200 ${
+              className={`group min-w-[126px] rounded-[20px] border px-2.5 py-2 text-left transition-all duration-200 sm:min-w-[142px] sm:rounded-[22px] sm:px-3 sm:py-2.5 ${
                 isOnPitch
                   ? "border-slate-200 bg-white shadow-[0_16px_34px_-28px_rgba(15,23,42,0.34)] hover:border-slate-300 hover:-translate-y-0.5"
                   : canEnterDirectly
@@ -349,7 +349,7 @@ export function BottomPlayerPanel({
             >
               <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`inline-flex h-9 w-9 items-center justify-center rounded-2xl border text-sm font-bold shadow-sm ${getBadgeTone(teamFilter)}`}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-2xl border text-sm font-bold shadow-sm sm:h-9 sm:w-9 ${getBadgeTone(teamFilter)}`}
                 >
                   {player.number}
                 </span>
@@ -390,14 +390,14 @@ export function BottomPlayerPanel({
 
               <div className="mt-2 flex items-center gap-2">
                 <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/70 text-[10px] font-semibold text-white shadow-sm"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/70 text-[10px] font-semibold text-white shadow-sm sm:h-9 sm:w-9"
                   style={jerseyStyle}
                 >
                   {player.kind === "goalkeeper" ? "GK" : "P"}
                 </div>
 
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-900">
+                  <p className="truncate text-[13px] font-semibold text-slate-900 sm:text-sm">
                     {player.name}
                   </p>
                   <p className="text-[10px] text-slate-500">

@@ -29,10 +29,10 @@ const isPlayerEntity = (entity: TacticalEntity): entity is PlayerEntity =>
   entity.kind === "player" || entity.kind === "goalkeeper";
 
 const inputClass =
-  "h-10 w-full rounded-2xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-sm outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+  "h-10 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-800 shadow-sm outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100 sm:text-xs";
 
 const cardClass =
-  "rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(248,250,252,0.88))] p-4 shadow-[0_28px_72px_-36px_rgba(15,23,42,0.42)] ring-1 ring-slate-200/60 backdrop-blur-2xl";
+  "max-h-[min(calc(100svh-6rem),46rem)] w-[min(calc(100vw-1rem),440px)] overflow-y-auto rounded-[24px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(248,250,252,0.88))] p-3 shadow-[0_28px_72px_-36px_rgba(15,23,42,0.42)] ring-1 ring-slate-200/60 backdrop-blur-2xl sm:max-h-[calc(100svh-2rem)] sm:rounded-[28px] sm:p-4";
 
 const MAX_PLAYERS_ON_PITCH = 11;
 
@@ -196,9 +196,7 @@ export function PlayerEditorPanel({
 
   if (!selectedPlayer) {
     return (
-      <aside
-        className={`${cardClass} w-[min(94vw,440px)] overflow-hidden ${className ?? ""}`}
-      >
+      <aside className={`${cardClass} ${className ?? ""}`}>
         <header className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -229,9 +227,7 @@ export function PlayerEditorPanel({
   const tone = getTeamTone(selectedPlayer.team);
 
   return (
-    <aside
-      className={`${cardClass} w-[min(94vw,440px)] overflow-hidden ${className ?? ""}`}
-    >
+    <aside className={`${cardClass} ${className ?? ""}`}>
       <header className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -324,7 +320,7 @@ export function PlayerEditorPanel({
       </div>
 
       <section className={`mt-3 rounded-[24px] border p-3 ${tone.soft}`}>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
           <span
             className={`inline-flex h-12 w-12 items-center justify-center rounded-[18px] text-base font-bold shadow-sm ${tone.badge}`}
           >
@@ -336,13 +332,13 @@ export function PlayerEditorPanel({
               {selectedPlayer.name}
             </p>
             <p className={`text-[11px] font-semibold ${tone.accent}`}>
-              {selectedPlayer.team === "home" ? "Casa" : "Visitante"} ·{" "}
+              {selectedPlayer.team === "home" ? "Casa" : "Visitante"} -{" "}
               {selectedPlayer.kind === "goalkeeper" ? "Goleiro" : "Linha"}
             </p>
           </div>
 
           <span
-            className={`ml-auto inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+            className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold sm:ml-auto ${
               isOnPitch
                 ? "bg-emerald-50 text-emerald-700"
                 : "bg-amber-100 text-amber-700"
@@ -405,7 +401,7 @@ export function PlayerEditorPanel({
         </select>
 
         <label
-          className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          className="inline-flex h-10 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:text-xs"
           title={`Cor de ${selectedPlayer.name}`}
         >
           <Palette size={14} />
@@ -422,7 +418,7 @@ export function PlayerEditorPanel({
 
         <button
           type="button"
-          className={`h-10 rounded-2xl border text-xs font-semibold transition ${
+          className={`h-10 min-w-0 rounded-2xl border px-3 text-[11px] font-semibold transition sm:text-xs ${
             selectedPlayer.isStarter === false
               ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
               : `${tone.soft}`
@@ -438,7 +434,7 @@ export function PlayerEditorPanel({
 
         <button
           type="button"
-          className={`h-10 rounded-2xl border text-xs font-semibold transition ${
+          className={`h-10 min-w-0 rounded-2xl border px-3 text-[11px] font-semibold transition sm:text-xs ${
             isOnPitch
               ? "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
               : canEnterPitch
@@ -494,7 +490,7 @@ function TeamTabButton({ label, active, onClick }: TeamTabButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 rounded-[18px] px-3 py-2 text-xs font-semibold transition ${
+      className={`flex-1 truncate rounded-[18px] px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${
         active
           ? "bg-white text-slate-900 shadow-sm"
           : "text-slate-500 hover:text-slate-700"

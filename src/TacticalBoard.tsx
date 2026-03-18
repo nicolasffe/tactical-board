@@ -396,33 +396,44 @@ export default function TacticalBoard() {
   }, [isPlaybackDragged, showPlaybackPanelUI]);
 
   const railButtonClass = (active: boolean) =>
-    `group pointer-events-auto relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border shadow-sm transition-all duration-200 sm:h-11 sm:w-11 ${
+    `group pointer-events-auto relative inline-flex h-9 w-9 items-center justify-center rounded-[16px] border shadow-sm transition-all duration-200 sm:h-11 sm:w-11 sm:rounded-2xl ${
       active
         ? "border-sky-200 bg-sky-50 text-sky-700 shadow-[0_16px_38px_-26px_rgba(14,116,144,0.5)]"
         : "border-white/75 bg-white/92 text-slate-700 hover:border-slate-200 hover:bg-white"
     }`;
 
   return (
-    <main className="relative h-screen w-full overflow-hidden">
+    <main className="relative h-[100svh] w-full overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-x-[8%] top-4 h-24 rounded-[32px] border border-white/35 bg-white/20 blur-2xl" />
-        <div className="absolute left-6 top-10 h-64 w-64 rounded-full bg-slate-900/8 blur-3xl" />
-        <div className="absolute right-8 top-14 h-56 w-56 rounded-full bg-sky-300/12 blur-3xl" />
-        <div className="absolute bottom-0 left-1/2 h-56 w-[48rem] -translate-x-1/2 rounded-full bg-white/30 blur-3xl" />
-        <div className="absolute inset-6 rounded-[40px] border border-white/25" />
+        <div className="absolute inset-x-[12%] top-3 h-20 rounded-[28px] border border-white/35 bg-white/20 blur-2xl sm:inset-x-[8%] sm:top-4 sm:h-24 sm:rounded-[32px]" />
+        <div className="absolute left-4 top-8 h-44 w-44 rounded-full bg-slate-900/8 blur-3xl sm:left-6 sm:top-10 sm:h-64 sm:w-64" />
+        <div className="absolute right-4 top-10 hidden h-44 w-44 rounded-full bg-sky-300/12 blur-3xl sm:block sm:right-8 sm:top-14 sm:h-56 sm:w-56" />
+        <div className="absolute bottom-0 left-1/2 h-44 w-[26rem] -translate-x-1/2 rounded-full bg-white/30 blur-3xl sm:h-56 sm:w-[48rem]" />
+        <div className="absolute inset-3 rounded-[28px] border border-white/20 sm:inset-6 sm:rounded-[40px] sm:border-white/25" />
       </div>
 
-      <div className="h-full w-full p-1.5 sm:p-2 lg:p-2.5">
-        <div className="relative h-full w-full overflow-hidden rounded-[32px] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.44),rgba(255,255,255,0.2))] p-1.5 shadow-[0_36px_100px_-52px_rgba(15,23,42,0.46)] ring-1 ring-slate-200/55 backdrop-blur-xl sm:p-2">
+      <div className="h-full w-full p-1 sm:p-2 lg:p-2.5">
+        <div className="relative h-full w-full overflow-hidden rounded-[26px] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.44),rgba(255,255,255,0.2))] p-1 shadow-[0_36px_100px_-52px_rgba(15,23,42,0.46)] ring-1 ring-slate-200/55 backdrop-blur-xl sm:rounded-[32px] sm:p-2">
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.22),transparent_30%,rgba(15,23,42,0.05)_100%)]" />
-          <div className="absolute inset-3 rounded-[26px] border border-white/30" />
-          <div className="relative h-full w-full overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+          <div className="absolute inset-2 rounded-[22px] border border-white/30 sm:inset-3 sm:rounded-[26px]" />
+          <div className="relative h-full w-full overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] sm:rounded-[24px]">
             <BoardCanvas svgRef={svgRef} benchDrag={benchDrag} />
           </div>
         </div>
       </div>
 
-      <div className="pointer-events-none absolute left-3 top-3 z-30 flex flex-col gap-2 rounded-[22px] border border-white/70 bg-white/82 p-1.5 shadow-[0_20px_48px_-34px_rgba(15,23,42,0.38)] backdrop-blur-2xl sm:left-4 sm:top-4">
+      <div
+        className={`pointer-events-none absolute z-30 flex gap-2 rounded-[22px] border border-white/70 bg-white/82 p-1.5 shadow-[0_20px_48px_-34px_rgba(15,23,42,0.38)] backdrop-blur-2xl transition-all duration-300 ${
+          isMobile
+            ? "left-1/2 top-2 -translate-x-1/2 flex-row"
+            : "left-3 top-3 flex-col sm:left-4 sm:top-4"
+        }`}
+        style={
+          isMobile
+            ? { top: "calc(env(safe-area-inset-top) + 0.5rem)" }
+            : undefined
+        }
+      >
         <button
           type="button"
           className={railButtonClass(showLeftControls)}
@@ -430,7 +441,7 @@ export default function TacticalBoard() {
           aria-label="Alternar painel"
           title="Painel"
         >
-          <LayoutPanelLeft size={17} />
+          <LayoutPanelLeft size={15} />
         </button>
 
         <button
@@ -440,7 +451,7 @@ export default function TacticalBoard() {
           aria-label="Alternar jogadores"
           title="Jogadores"
         >
-          <UsersRound size={17} />
+          <UsersRound size={15} />
         </button>
 
         <button
@@ -450,12 +461,12 @@ export default function TacticalBoard() {
           aria-label="Alternar animacao"
           title="Animacao"
         >
-          {showPlaybackPanel ? <Pause size={17} /> : <Play size={17} />}
+          {showPlaybackPanel ? <Pause size={15} /> : <Play size={15} />}
         </button>
       </div>
 
       {showLeftPanelUI && (
-        <div className="panel-float-in absolute left-[4.85rem] top-3 z-30 pointer-events-auto transition-all duration-300 sm:left-[5.2rem] sm:top-4">
+        <div className="panel-float-in absolute inset-x-2 top-[4.2rem] z-30 pointer-events-auto transition-all duration-300 sm:inset-x-auto sm:left-[5.2rem] sm:top-4">
           <SimpleControls
             onClose={() => setShowLeftControls(false)}
             onSaveTactic={handleSaveTactic}
@@ -470,10 +481,10 @@ export default function TacticalBoard() {
 
       {showBottomPanelUI && (
         <div
-          className={`panel-float-in absolute left-1/2 z-30 -translate-x-1/2 pointer-events-auto transition-all duration-300 ${
+          className={`panel-float-in absolute inset-x-2 z-30 pointer-events-auto transition-all duration-300 sm:left-1/2 sm:inset-x-auto sm:-translate-x-1/2 ${
             showPlaybackPanelUI && isMobile
-              ? "bottom-[6.8rem]"
-              : "bottom-3 sm:bottom-4"
+              ? "bottom-[8.2rem]"
+              : "bottom-2 sm:bottom-4"
           }`}
         >
           <BottomPlayerPanel
@@ -523,7 +534,7 @@ export default function TacticalBoard() {
             aria-label="Fechar editor"
           />
 
-          <div className="panel-float-in absolute inset-x-0 top-3 z-40 flex justify-center px-3 sm:inset-x-auto sm:right-4 sm:top-4 sm:block sm:px-0">
+          <div className="panel-float-in absolute inset-x-2 bottom-2 z-40 flex max-h-[calc(100svh-6rem)] items-end justify-center sm:inset-x-auto sm:bottom-auto sm:right-4 sm:top-4 sm:block sm:max-h-none">
             <PlayerEditorPanel onClose={() => setShowPlayerEditor(false)} />
           </div>
         </>
@@ -536,7 +547,7 @@ export default function TacticalBoard() {
             isPlaybackDragged && !isMobile
               ? "left-0 top-0 w-[min(92vw,420px)]"
               : isMobile
-                ? "bottom-3 inset-x-3"
+                ? "bottom-2 inset-x-2"
                 : "bottom-4 right-4 w-[360px]"
           }`}
         >

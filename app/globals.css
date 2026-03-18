@@ -27,6 +27,7 @@
 html,
 body {
   height: 100%;
+  min-height: 100svh;
 }
 
 html {
@@ -36,6 +37,7 @@ html {
 body {
   margin: 0;
   overflow: hidden;
+  overscroll-behavior: none;
   font-family: var(--font-sans), sans-serif;
   background:
     radial-gradient(
@@ -162,4 +164,11 @@ samp {
 
 .panel-float-in {
   animation: panel-float-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (max-width: 768px) {
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
 }
