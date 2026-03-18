@@ -81,8 +81,6 @@ interface TacticalBoardStore {
   selection: BoardSelection;
   history: BoardHistory;
   playback: PlaybackState;
-  isRecording: boolean;
-  countdown: number | null;
   setActiveTool: (tool: TacticalBoardStore["activeTool"]) => void;
   setSelection: (selection: Partial<BoardSelection>) => void;
   clearSelection: () => void;
@@ -92,6 +90,11 @@ interface TacticalBoardStore {
   moveEntity: (entityId: Id, position: Point, frameId?: Id) => void;
   removePlayerFromPitch: (playerId: Id, frameId?: Id) => void;
   returnPlayerToPitch: (playerId: Id, frameId?: Id) => void;
+  substitutePlayers: (
+    benchPlayerId: Id,
+    fieldPlayerId: Id,
+    frameId?: Id,
+  ) => void;
   removeEntity: (entityId: Id) => void;
   addLine: (input: NewLineInput, frameId?: Id) => void;
   updateLine: (
@@ -145,14 +148,13 @@ interface TacticalBoardStore {
     formation: FormationPreset,
     frameId?: Id,
   ) => void;
+  swapSides: () => void;
   play: () => void;
   pause: () => void;
   stop: () => void;
   tickPlayback: (deltaMs: number) => void;
   toggleLoop: () => void;
   setPlaybackSpeed: (speed: number) => void;
-  startRecording: () => void;
-  stopRecording: () => void;
   undo: () => void;
   redo: () => void;
   resetBoard: () => void;
@@ -228,6 +230,27 @@ const buildOutfieldPositions = (
     : positions;
 };
 
+const getBenchPosition = (
+  team: TeamSide,
+  index: number,
+  dimensions = PITCH_DIMENSIONS,
+): Point => {
+  const column = index % 4;
+  const row = Math.floor(index / 4);
+  const laneX = 15 + column * 6.4;
+  const laneY = 6 + row * 4.8;
+
+  return team === "home"
+    ? {
+        x: laneX,
+        y: dimensions.height - laneY,
+      }
+    : {
+        x: dimensions.width - laneX,
+        y: laneY,
+      };
+};
+
 const buildTeamEntities = (
   team: TeamSide,
   formation: FormationPreset,
@@ -250,6 +273,8 @@ const buildTeamEntities = (
     number: 1,
     name: `${sidePrefix} GK`,
     color,
+    jerseyStyle: "bordered",
+    isStarter: true,
     radius: 2.3,
     rotation: 0,
     defaultPosition: goalkeeperPoint,
@@ -265,13 +290,48 @@ const buildTeamEntities = (
       number,
       name: `${sidePrefix}${number}`,
       color,
+      jerseyStyle: team === "home" ? "striped" : "solid",
+      isStarter: true,
       radius: 2.1,
       rotation: 0,
       defaultPosition: position,
     } satisfies TacticalEntity;
   });
 
-  return [goalkeeper, ...outfield];
+  const benchGoalkeeper: TacticalEntity = {
+    id: `${team}-gk-12`,
+    kind: "goalkeeper",
+    label: "12",
+    team,
+    number: 12,
+    name: `${sidePrefix} GK 12`,
+    color,
+    jerseyStyle: "bordered",
+    isStarter: false,
+    radius: 2.3,
+    rotation: 0,
+    defaultPosition: getBenchPosition(team, 0, dimensions),
+  };
+
+  const benchPlayers = Array.from({ length: 6 }, (_, index) => {
+    const number = index + 13;
+    return {
+      id: `${team}-bench-${number}`,
+      kind: "player",
+      label: `${number}`,
+      team,
+      number,
+      name: `${sidePrefix}${number}`,
+      color,
+      jerseyStyle: team === "home" ? "striped" : "solid",
+      isStarter: false,
+      radius: 2.1,
+      rotation: 0,
+      defaultPosition: getBenchPosition(team, index + 1, dimensions),
+    } satisfies TacticalEntity;
+  });
+
+  return [goalkeeper, ...outfield, benchGoalkeeper, ...benchPlayers];
 };
 
 const buildEquipmentEntities = (): TacticalEntity[] => [];
@@ -285,7 +345,10 @@ const createFrameStatesFromEntities = (
   Object.fromEntries(
     Object.values(entities).map((entity) => [
       entity.id,
-      createFrameEntityState(deepClone(entity.defaultPosition)),
+      {
+        ...createFrameEntityState(deepClone(entity.defaultPosition)),
+        visible: isTeamEntity(entity) ? (entity.isStarter ?? true) : true,
+      },
     ]),
   );
 
@@ -303,6 +366,11 @@ const getDimensionsByPreset = (preset: PitchPreset) =>
 const scalePoint = (point: Point, scaleX: number, scaleY: number): Point => ({
   x: point.x * scaleX,
   y: point.y * scaleY,
+});
+
+const mirrorPoint = (point: Point, pitchWidth: number): Point => ({
+  x: pitchWidth - point.x,
+  y: point.y,
 });
 
 const scaleAnchor = (
@@ -353,6 +421,58 @@ const scaleFrameOverlays = (
     ...ruler,
     start: scaleAnchor(ruler.start, scaleX, scaleY),
     end: scaleAnchor(ruler.end, scaleX, scaleY),
+  })),
+});
+
+const mirrorAnchor = (
+  anchor: AnchorTarget,
+  pitchWidth: number,
+): AnchorTarget => {
+  if (anchor.kind === "free") {
+    return {
+      ...anchor,
+      point: mirrorPoint(anchor.point, pitchWidth),
+    };
+  }
+
+  return {
+    ...anchor,
+    offset: anchor.offset
+      ? {
+          x: -anchor.offset.x,
+          y: anchor.offset.y,
+        }
+      : anchor.offset,
+  };
+};
+
+const mirrorFrameOverlays = (
+  overlays: FrameOverlays,
+  pitchWidth: number,
+): FrameOverlays => ({
+  lines: overlays.lines.map((line) => ({
+    ...line,
+    start: mirrorAnchor(line.start, pitchWidth),
+    end: mirrorAnchor(line.end, pitchWidth),
+    controlPoint1: mirrorPoint(line.controlPoint1, pitchWidth),
+    controlPoint2: mirrorPoint(line.controlPoint2, pitchWidth),
+  })),
+  freehand: overlays.freehand.map((stroke) => ({
+    ...stroke,
+    points: stroke.points.map((point) => mirrorPoint(point, pitchWidth)),
+  })),
+  polygons: overlays.polygons.map((polygon) => ({
+    ...polygon,
+    points: polygon.points.map((point) => mirrorPoint(point, pitchWidth)),
+  })),
+  texts: overlays.texts.map((text) => ({
+    ...text,
+    position: mirrorPoint(text.position, pitchWidth),
+  })),
+  rulers: overlays.rulers.map((ruler) => ({
+    ...ruler,
+    start: mirrorAnchor(ruler.start, pitchWidth),
+    end: mirrorAnchor(ruler.end, pitchWidth),
   })),
 });
 
@@ -421,8 +541,8 @@ const ensureFrameOverlays = (
 const createInitialSnapshot = (): TacticalBoardSnapshot => {
   const initialDimensions = getDimensionsByPreset(DEFAULT_SETTINGS.pitchPreset);
   const entities = toEntityMap([
-    ...buildTeamEntities("home", "4-3-3", "#19d3c5", initialDimensions),
-    ...buildTeamEntities("away", "4-4-2", "#2f6bff", initialDimensions),
+    ...buildTeamEntities("home", "4-3-3", "#2563eb", initialDimensions),
+    ...buildTeamEntities("away", "4-4-2", "#f59e0b", initialDimensions),
     ...buildEquipmentEntities(),
   ]);
 
@@ -558,6 +678,65 @@ const getFramePositions = (
     ]),
   );
 
+const MAX_PLAYERS_ON_PITCH = 11;
+
+const getTeamEntities = (
+  entities: Record<Id, TacticalEntity>,
+  team: TeamSide,
+): PlayerEntity[] =>
+  Object.values(entities)
+    .filter(isTeamEntity)
+    .filter((entity) => entity.team === team);
+
+const getTeamOnPitchCount = (
+  frame: TimelineFrame,
+  entities: Record<Id, TacticalEntity>,
+  team: TeamSide,
+): number =>
+  getTeamEntities(entities, team).filter(
+    (entity) => frame.entityStates[entity.id]?.visible ?? true,
+  ).length;
+
+const getReturnPositionForPlayer = (
+  frame: TimelineFrame,
+  entities: Record<Id, TacticalEntity>,
+  player: PlayerEntity,
+): Point => {
+  const currentState = frame.entityStates[player.id];
+  const currentPosition = currentState?.position ?? player.defaultPosition;
+
+  if (player.isStarter ?? false) {
+    return currentPosition;
+  }
+
+  const hasPlayedBefore =
+    currentPosition.x !== player.defaultPosition.x ||
+    currentPosition.y !== player.defaultPosition.y;
+
+  if (hasPlayedBefore) {
+    return currentPosition;
+  }
+
+  const openSlot = getTeamEntities(entities, player.team)
+    .filter((entity) => entity.id !== player.id)
+    .filter((entity) => !(frame.entityStates[entity.id]?.visible ?? true))
+    .sort((a, b) => {
+      const starterWeight =
+        Number(Boolean(b.isStarter)) - Number(Boolean(a.isStarter));
+      if (starterWeight !== 0) {
+        return starterWeight;
+      }
+
+      return a.number - b.number;
+    })[0];
+
+  if (openSlot) {
+    return frame.entityStates[openSlot.id]?.position ?? openSlot.defaultPosition;
+  }
+
+  return currentPosition;
+};
+
 type StoreSet = StoreApi<TacticalBoardStore>["setState"];
 type StoreGet = StoreApi<TacticalBoardStore>["getState"];
 
@@ -609,8 +788,6 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
     limit: HISTORY_LIMIT,
   },
   playback: deepClone(DEFAULT_PLAYBACK),
-  isRecording: false,
-  countdown: null,
 
   setActiveTool: (tool) => {
     set((state) => ({
@@ -683,12 +860,15 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
     applyBoardMutation(set, get, (draft) => {
       const id = uuidv4();
       const kind = input.kind;
+      let initialVisibility = true;
 
       let nextEntity: TacticalEntity;
 
       if (kind === "player" || kind === "goalkeeper") {
         const team = input.team ?? "home";
         const number = input.number ?? getNextTeamNumber(draft.entities, team);
+        const isStarter = input.isStarter ?? true;
+        initialVisibility = isStarter;
         nextEntity = {
           id,
           kind,
@@ -696,10 +876,16 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
           number,
           name: input.name ?? `${team === "home" ? "H" : "A"}${number}`,
           label: input.label ?? `${number}`,
-          color: input.color ?? (team === "home" ? "#19d3c5" : "#2f6bff"),
+          color: input.color ?? (team === "home" ? "#2563eb" : "#f59e0b"),
           avatarUrl: input.avatarUrl,
-          jerseyStyle: input.jerseyStyle,
-          isStarter: input.isStarter,
+          jerseyStyle:
+            input.jerseyStyle ??
+            (kind === "goalkeeper"
+              ? "bordered"
+              : team === "home"
+                ? "striped"
+                : "solid"),
+          isStarter,
           radius: kind === "goalkeeper" ? 2.3 : 2.1,
           rotation: 0,
           defaultPosition: input.position,
@@ -726,7 +912,10 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
 
       draft.entities[id] = nextEntity;
       draft.frames.forEach((frame) => {
-        frame.entityStates[id] = createFrameEntityState(input.position);
+        frame.entityStates[id] = {
+          ...createFrameEntityState(input.position),
+          visible: initialVisibility,
+        };
       });
     });
   },
@@ -809,10 +998,68 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         return false;
       }
 
+      if (
+        getTeamOnPitchCount(frame, draft.entities, entity.team) >=
+        MAX_PLAYERS_ON_PITCH
+      ) {
+        return false;
+      }
+
       frame.entityStates[playerId] = {
-        position: current?.position ?? entity.defaultPosition,
+        position: getReturnPositionForPlayer(frame, draft.entities, entity),
         rotation: current?.rotation ?? 0,
         visible: true,
+      };
+    });
+  },
+
+  substitutePlayers: (benchPlayerId, fieldPlayerId, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const benchPlayer = draft.entities[benchPlayerId];
+      const fieldPlayer = draft.entities[fieldPlayerId];
+
+      if (
+        !benchPlayer ||
+        !fieldPlayer ||
+        !isTeamEntity(benchPlayer) ||
+        !isTeamEntity(fieldPlayer) ||
+        benchPlayer.team !== fieldPlayer.team ||
+        benchPlayer.id === fieldPlayer.id
+      ) {
+        return false;
+      }
+
+      const targetFrameId = frameId ?? draft.activeFrameId;
+      const frame = getFrameById(draft.frames, targetFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const benchState = frame.entityStates[benchPlayerId] ?? {
+        ...createFrameEntityState(benchPlayer.defaultPosition),
+        visible: false,
+      };
+      const fieldState = frame.entityStates[fieldPlayerId] ?? {
+        ...createFrameEntityState(fieldPlayer.defaultPosition),
+        visible: true,
+      };
+
+      if (benchState.visible || !fieldState.visible) {
+        return false;
+      }
+
+      frame.entityStates[benchPlayerId] = {
+        ...benchState,
+        position: fieldState.position,
+        rotation: fieldState.rotation ?? 0,
+        visible: true,
+      };
+
+      frame.entityStates[fieldPlayerId] = {
+        ...fieldState,
+        position: benchPlayer.defaultPosition,
+        rotation: benchState.rotation ?? 0,
+        visible: false,
       };
     });
   },
@@ -1400,6 +1647,41 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
     });
   },
 
+  swapSides: () => {
+    applyBoardMutation(set, get, (draft) => {
+      const pitchWidth = getDimensionsByPreset(
+        draft.settings.pitchPreset,
+      ).width;
+
+      Object.values(draft.entities).forEach((entity) => {
+        if (isTeamEntity(entity)) {
+          entity.defaultPosition = mirrorPoint(
+            entity.defaultPosition,
+            pitchWidth,
+          );
+        }
+      });
+
+      draft.frames.forEach((frame) => {
+        Object.entries(frame.entityStates).forEach(
+          ([entityId, entityState]) => {
+            const entity = draft.entities[entityId];
+            if (!entity || !isTeamEntity(entity)) {
+              return;
+            }
+
+            frame.entityStates[entityId] = {
+              ...entityState,
+              position: mirrorPoint(entityState.position, pitchWidth),
+            };
+          },
+        );
+
+        frame.overlays = mirrorFrameOverlays(frame.overlays, pitchWidth);
+      });
+    });
+  },
+
   play: () => {
     set((state) => {
       if (state.frames.length < 2) {
@@ -1525,21 +1807,6 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
         ...state.playback,
         speed: clamp(speed, 0.25, 3),
       },
-    }));
-  },
-
-  startRecording: () => {
-    set((state) => ({
-      ...state,
-      isRecording: true,
-    }));
-  },
-
-  stopRecording: () => {
-    set((state) => ({
-      ...state,
-      isRecording: false,
-      countdown: null,
     }));
   },
 

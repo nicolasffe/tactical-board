@@ -64,7 +64,8 @@ const getPitchPalette = (
 
   return {
     surface: "url(#pitchGradient)",
-    stripeA: "rgba(255,255,255,0.06)",
+    stripeA: "rgba(255,255,255,0.1)",
+    stripeB: "rgba(15,23,42,0.08)",
     markings: theme === "high-contrast" ? "#ffffff" : "rgba(248,250,252,0.94)",
     grid: "rgba(15,23,42,0.22)",
     zonesStroke: "rgba(15,23,42,0.32)",
@@ -100,9 +101,16 @@ export function PitchLayer({
     <g>
       <defs>
         <linearGradient id="pitchGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#3d7a5e" />
-          <stop offset="100%" stopColor="#2f664d" />
+          <stop offset="0%" stopColor="#4f9767" />
+          <stop offset="38%" stopColor="#3f8758" />
+          <stop offset="100%" stopColor="#2f6947" />
         </linearGradient>
+
+        <radialGradient id="pitchLight" cx="50%" cy="42%" r="72%">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.18)" />
+          <stop offset="58%" stopColor="rgba(255,255,255,0.06)" />
+          <stop offset="100%" stopColor="rgba(15,23,42,0.12)" />
+        </radialGradient>
 
         <pattern
           id="pitchStripes"
@@ -139,7 +147,18 @@ export function PitchLayer({
           width={width}
           height={height}
           fill="url(#pitchStripes)"
-          opacity={0.45}
+          opacity={0.52}
+          rx={1}
+        />
+      )}
+      {pitchStyle === "realistic-grass" && (
+        <rect
+          x={0}
+          y={0}
+          width={width}
+          height={height}
+          fill="url(#pitchLight)"
+          opacity={0.95}
           rx={1}
         />
       )}

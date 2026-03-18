@@ -6,6 +6,7 @@ import { useMemo, useRef, useState } from "react";
 import { useTacticalBoardStore } from "@/src/store";
 import type {
   AnchorTarget,
+  BenchDragPreview,
   ControlPointKey,
   Id,
   PitchDimensions,
@@ -29,6 +30,7 @@ import {
 
 interface BoardCanvasProps {
   svgRef: React.RefObject<SVGSVGElement | null>;
+  benchDrag?: BenchDragPreview | null;
 }
 
 interface DraftLine {
@@ -98,45 +100,160 @@ const renderEntityShape = (
   const strokeWidth = 0.24;
 
   if (entity.kind === "ball") {
+    const ballGradientId = `ball-gradient-${entity.id}`;
     return (
       <>
+        <defs>
+          <radialGradient id={ballGradientId} cx="36%" cy="28%" r="72%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="58%" stopColor="#f8fafc" />
+            <stop offset="100%" stopColor="#dbe3ec" />
+          </radialGradient>
+        </defs>
+        <ellipse
+          cx={entity.radius * 0.16}
+          cy={entity.radius * 0.86}
+          rx={entity.radius * 0.74}
+          ry={entity.radius * 0.32}
+          fill="rgba(15,23,42,0.16)"
+        />
         <circle
           r={entity.radius}
-          fill={entity.color}
+          fill={`url(#${ballGradientId})`}
           stroke={stroke}
           strokeWidth={strokeWidth}
         />
-        <circle r={entity.radius * 0.42} fill="rgba(15,23,42,0.3)" />
+        <path
+          d={`M 0 ${-entity.radius * 0.74} C ${entity.radius * 0.33} ${-entity.radius * 0.5}, ${entity.radius * 0.33} ${entity.radius * 0.5}, 0 ${entity.radius * 0.74}`}
+          fill="none"
+          stroke="rgba(30,41,59,0.24)"
+          strokeWidth={0.2}
+        />
+        <path
+          d={`M ${-entity.radius * 0.74} 0 C ${-entity.radius * 0.5} ${-entity.radius * 0.33}, ${entity.radius * 0.5} ${-entity.radius * 0.33}, ${entity.radius * 0.74} 0`}
+          fill="none"
+          stroke="rgba(30,41,59,0.2)"
+          strokeWidth={0.18}
+        />
+        <circle
+          cx={-entity.radius * 0.35}
+          cy={-entity.radius * 0.35}
+          r={entity.radius * 0.2}
+          fill="rgba(255,255,255,0.42)"
+        />
       </>
     );
   }
 
   if (entity.kind === "cone") {
     const r = entity.radius;
+    const coneGradientId = `cone-gradient-${entity.id}`;
     return (
-      <polygon
-        points={`0,${-r} ${r * 0.9},${r * 0.9} ${-r * 0.9},${r * 0.9}`}
-        fill={entity.color}
-        stroke={stroke}
-        strokeWidth={strokeWidth}
-      />
+      <>
+        <defs>
+          <linearGradient
+            id={coneGradientId}
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stopColor="#fdc48a" />
+            <stop offset="48%" stopColor={entity.color} />
+            <stop offset="100%" stopColor="#b45309" />
+          </linearGradient>
+        </defs>
+        <ellipse
+          cx={0}
+          cy={r * 0.98}
+          rx={r * 0.74}
+          ry={r * 0.2}
+          fill="rgba(15,23,42,0.18)"
+        />
+        <polygon
+          points={`0,${-r} ${r * 0.92},${r * 0.95} ${-r * 0.92},${r * 0.95}`}
+          fill={`url(#${coneGradientId})`}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+        />
+        <path
+          d={`M ${-r * 0.58} ${r * 0.16} L ${r * 0.58} ${r * 0.16}`}
+          stroke="rgba(255,255,255,0.4)"
+          strokeWidth={0.16}
+        />
+        <path
+          d={`M ${-r * 0.48} ${-r * 0.2} L ${r * 0.48} ${-r * 0.2}`}
+          stroke="rgba(255,255,255,0.3)"
+          strokeWidth={0.14}
+        />
+      </>
     );
   }
 
   if (entity.kind === "mannequin") {
     const width = entity.radius * 1.6;
     const height = entity.radius * 2.6;
+    const mannequinGradientId = `mannequin-gradient-${entity.id}`;
     return (
-      <rect
-        x={-width / 2}
-        y={-height / 2}
-        width={width}
-        height={height}
-        rx={0.55}
-        fill={entity.color}
-        stroke={stroke}
-        strokeWidth={strokeWidth}
-      />
+      <>
+        <defs>
+          <linearGradient
+            id={mannequinGradientId}
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stopColor="#e2e8f0" />
+            <stop offset="42%" stopColor={entity.color} />
+            <stop offset="100%" stopColor="#475569" />
+          </linearGradient>
+        </defs>
+
+        <ellipse
+          cx={0}
+          cy={height / 2 + entity.radius * 0.18}
+          rx={width * 0.4}
+          ry={entity.radius * 0.2}
+          fill="rgba(15,23,42,0.18)"
+        />
+
+        <rect
+          x={-width / 2}
+          y={-height / 2}
+          width={width}
+          height={height}
+          rx={0.55}
+          fill={`url(#${mannequinGradientId})`}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+        />
+
+        <line
+          x1={-width * 0.3}
+          y1={-height * 0.18}
+          x2={width * 0.3}
+          y2={-height * 0.18}
+          stroke="rgba(255,255,255,0.3)"
+          strokeWidth={0.14}
+        />
+        <line
+          x1={-width * 0.3}
+          y1={height * 0.08}
+          x2={width * 0.3}
+          y2={height * 0.08}
+          stroke="rgba(255,255,255,0.24)"
+          strokeWidth={0.14}
+        />
+        <line
+          x1={-width * 0.2}
+          y1={-height * 0.36}
+          x2={-width * 0.2}
+          y2={height * 0.3}
+          stroke="rgba(255,255,255,0.18)"
+          strokeWidth={0.12}
+        />
+      </>
     );
   }
 
@@ -235,7 +352,7 @@ const renderEntityShape = (
   );
 };
 
-export function BoardCanvas({ svgRef }: BoardCanvasProps) {
+export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
   const boardLayerRef = useRef<SVGGElement | null>(null);
   const settings = useTacticalBoardStore((state) => state.settings);
   const entities = useTacticalBoardStore((state) => state.entities);
@@ -933,6 +1050,13 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
     renderable.overlays?.lines?.find(
       (line) => line.id === selection.activeOverlayId,
     ) ?? null;
+  const draggedBenchEntity = benchDrag
+    ? entities[benchDrag.playerId]
+    : undefined;
+  const draggedBenchPlayer: PlayerEntity | null =
+    draggedBenchEntity && isPlayerEntity(draggedBenchEntity)
+      ? draggedBenchEntity
+      : null;
 
   const commitInlineTextEdit = (textId: Id) => {
     const sanitizedText = editingTextValue.trim();
@@ -1293,15 +1417,27 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
               .filter((entity) => renderable.visibility[entity.id] ?? true)
               .map((entity) => {
                 const position = getRenderedEntityPosition(entity);
+                const isSelected =
+                  selection.activeEntityId === entity.id ||
+                  selection.entityIds.includes(entity.id);
+                const isHovered = hoveredEntityId === entity.id;
                 const showName =
                   settings.showPlayerNames ||
                   (entity.kind === "player" || entity.kind === "goalkeeper"
-                    ? hoveredEntityId === entity.id
+                    ? isHovered
                     : false);
                 const mobileConeTransform =
                   isPortraitRotated && entity.kind === "cone"
                     ? "rotate(90)"
                     : undefined;
+                const entityLabel =
+                  entity.kind === "player" || entity.kind === "goalkeeper"
+                    ? entity.name
+                    : entity.label;
+                const isBenchDragTargetCandidate =
+                  draggedBenchPlayer !== null &&
+                  isPlayerEntity(entity) &&
+                  entity.team === draggedBenchPlayer.team;
 
                 return (
                   <g
@@ -1311,6 +1447,9 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
                       entity.locked
                         ? "pointer-events-none"
                         : "cursor-grab active:cursor-grabbing"
+                    }
+                    data-player-drop-id={
+                      isPlayerEntity(entity) ? entity.id : undefined
                     }
                     onPointerDown={(event) =>
                       handleEntityPointerDown(event, entity.id)
@@ -1326,26 +1465,64 @@ export function BoardCanvas({ svgRef }: BoardCanvasProps) {
                       r={Math.max(entity.radius * 1.45, 3)}
                       fill="transparent"
                     />
+
+                    {(isSelected || isHovered || isBenchDragTargetCandidate) && (
+                      <circle
+                        r={Math.max(
+                          entity.radius * (isBenchDragTargetCandidate ? 1.55 : 1.35),
+                          3,
+                        )}
+                        fill={
+                          isSelected
+                            ? "rgba(14,165,233,0.18)"
+                            : isBenchDragTargetCandidate
+                              ? "rgba(245,158,11,0.12)"
+                            : "rgba(255,255,255,0.12)"
+                        }
+                        stroke={
+                          isSelected
+                            ? "rgba(14,165,233,0.95)"
+                            : isBenchDragTargetCandidate
+                              ? "rgba(245,158,11,0.88)"
+                            : "rgba(255,255,255,0.5)"
+                        }
+                        strokeWidth={0.24}
+                        strokeDasharray={
+                          isBenchDragTargetCandidate
+                            ? "1.2 0.9"
+                            : undefined
+                        }
+                        className="pointer-events-none"
+                      />
+                    )}
+
                     <g transform={mobileConeTransform}>
                       {renderEntityShape(entity, readableTextTransform)}
                     </g>
 
                     {showName && (
-                      <text
-                        x={0}
-                        y={-entity.radius - 1.3}
-                        textAnchor="middle"
-                        fontSize={1.6}
-                        fill="#e2e8f0"
-                        fontWeight={600}
-                        transform={readableTextTransform}
+                      <g
+                        transform={`translate(0 ${entity.radius + 1.7})`}
                         className="pointer-events-none"
                       >
-                        {entity.kind === "player" ||
-                        entity.kind === "goalkeeper"
-                          ? entity.name
-                          : entity.label}
-                      </text>
+                        <g transform={readableTextTransform}>
+                          <text
+                            x={0}
+                            y={0}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize={1.2}
+                            fill="rgba(15,23,42,0.92)"
+                            fontWeight={600}
+                            stroke="rgba(255,255,255,0.96)"
+                            strokeWidth={0.34}
+                            paintOrder="stroke"
+                            letterSpacing="0.01em"
+                          >
+                            {entityLabel}
+                          </text>
+                        </g>
+                      </g>
                     )}
                   </g>
                 );

@@ -49,13 +49,25 @@ export type DrawTool =
 export type LineType = "pass" | "run" | "dribble";
 export type ControlPointKey = "controlPoint1" | "controlPoint2";
 
-export type FormationPreset = "4-4-2" | "4-3-3" | "3-5-2" | "4-2-3-1";
+export type FormationPreset =
+  | "4-4-2"
+  | "4-3-3"
+  | "3-5-2"
+  | "4-2-3-1"
+  | "4-1-4-1"
+  | "3-4-3"
+  | "5-3-2"
+  | "5-4-1";
 
 export const FORMATION_PRESETS: readonly FormationPreset[] = [
   "4-4-2",
   "4-3-3",
   "3-5-2",
   "4-2-3-1",
+  "4-1-4-1",
+  "3-4-3",
+  "5-3-2",
+  "5-4-1",
 ];
 
 export interface TrainingSettings {
@@ -99,6 +111,17 @@ export interface PlayerEntity extends TacticalEntityBase {
   avatarUrl?: string;
   jerseyStyle?: JerseyStyle;
   isStarter?: boolean;
+}
+
+export interface BenchDragPreview {
+  playerId: Id;
+  playerName: string;
+  playerNumber: number;
+  team: TeamSide;
+  color: string;
+  jerseyStyle?: JerseyStyle;
+  clientX: number;
+  clientY: number;
 }
 
 export interface EquipmentEntity extends TacticalEntityBase {
