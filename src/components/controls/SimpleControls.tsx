@@ -10,14 +10,11 @@ import {
   Highlighter,
   MoveRight,
   MousePointer2,
-  Redo2,
-  RotateCcw,
   ScanLine,
   Send,
   SquarePen,
   Triangle,
   Type,
-  Undo2,
   UsersRound,
   Waves,
   X,
@@ -69,7 +66,6 @@ export function SimpleControls({
 }: SimpleControlsProps) {
   const activeTool = useTacticalBoardStore((state) => state.activeTool);
   const settings = useTacticalBoardStore((state) => state.settings);
-  const history = useTacticalBoardStore((state) => state.history);
   const entities = useTacticalBoardStore((state) => state.entities);
   const frames = useTacticalBoardStore((state) => state.frames);
   const activeFrameId = useTacticalBoardStore((state) => state.activeFrameId);
@@ -81,9 +77,6 @@ export function SimpleControls({
   const applyFormation = useTacticalBoardStore((state) => state.applyFormation);
   const addEntity = useTacticalBoardStore((state) => state.addEntity);
   const removeEntity = useTacticalBoardStore((state) => state.removeEntity);
-  const undo = useTacticalBoardStore((state) => state.undo);
-  const redo = useTacticalBoardStore((state) => state.redo);
-  const resetBoard = useTacticalBoardStore((state) => state.resetBoard);
   const swapSides = useTacticalBoardStore((state) => state.swapSides);
 
   const [team, setTeam] = useState<TeamSide>("home");
@@ -320,6 +313,11 @@ export function SimpleControls({
               >
                 Limpar
               </button>
+
+              <p className="mt-2 text-[11px] leading-5 text-slate-500">
+                Selecione cone, bola ou manequim no campo para girar ou excluir
+                sem abrir outro painel.
+              </p>
             </>
           )}
         </SectionCard>
@@ -474,37 +472,9 @@ export function SimpleControls({
         </SectionCard>
 
         <SectionCard icon={Download} title="Arquivo">
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              className={subtleButtonClass}
-              disabled={history.past.length === 0}
-              onClick={undo}
-            >
-              <Undo2 size={14} />
-            </button>
-
-            <button
-              type="button"
-              className={subtleButtonClass}
-              disabled={history.future.length === 0}
-              onClick={redo}
-            >
-              <Redo2 size={14} />
-            </button>
-
-            <button
-              type="button"
-              className={subtleButtonClass}
-              onClick={resetBoard}
-            >
-              <RotateCcw size={14} />
-            </button>
-          </div>
-
           <button
             type="button"
-            className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
             onClick={onSaveTactic}
           >
             <Download size={14} />

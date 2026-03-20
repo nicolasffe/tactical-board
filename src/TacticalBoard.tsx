@@ -5,6 +5,9 @@ import {
   LayoutPanelLeft,
   Pause,
   Play,
+  Redo2,
+  RotateCcw,
+  Undo2,
   UsersRound,
   X,
 } from "lucide-react";
@@ -33,8 +36,12 @@ export default function TacticalBoard() {
   const playbackPanelRef = useRef<HTMLDivElement | null>(null);
 
   const playback = useTacticalBoardStore((state) => state.playback);
+  const history = useTacticalBoardStore((state) => state.history);
   const tickPlayback = useTacticalBoardStore((state) => state.tickPlayback);
   const exportPlaybook = useTacticalBoardStore((state) => state.exportPlaybook);
+  const undo = useTacticalBoardStore((state) => state.undo);
+  const redo = useTacticalBoardStore((state) => state.redo);
+  const resetBoard = useTacticalBoardStore((state) => state.resetBoard);
   const setBoardSettings = useTacticalBoardStore(
     (state) => state.setBoardSettings,
   );
@@ -395,78 +402,102 @@ export default function TacticalBoard() {
     playbackPanelRef.current.style.transform = `translate(${playbackPositionRef.current.x}px, ${playbackPositionRef.current.y}px)`;
   }, [isPlaybackDragged, showPlaybackPanelUI]);
 
-  const railButtonClass = (active: boolean) =>
-    `group pointer-events-auto relative inline-flex h-9 w-9 items-center justify-center rounded-[16px] border shadow-sm transition-all duration-200 sm:h-11 sm:w-11 sm:rounded-2xl ${
-      active
-        ? "border-sky-200 bg-sky-50 text-sky-700 shadow-[0_16px_38px_-26px_rgba(14,116,144,0.5)]"
-        : "border-white/75 bg-white/92 text-slate-700 hover:border-slate-200 hover:bg-white"
+  const railButtonClass = (active: boolean, disabled = false) =>
+    `group relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[14px] border shadow-sm backdrop-blur-md transition-all duration-200 sm:h-10 sm:w-10 sm:rounded-[18px] ${
+      disabled
+        ? "cursor-not-allowed border-white/18 bg-white/14 text-white/35 shadow-none"
+        : active
+        ? "border-white/46 bg-white/26 text-white shadow-[0_16px_34px_-26px_rgba(15,23,42,0.62)]"
+        : "border-white/18 bg-slate-950/16 text-white/72 hover:border-white/30 hover:bg-white/18 hover:text-white"
     }`;
 
   return (
     <main className="relative h-[100svh] w-full overflow-hidden">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-x-[12%] top-3 h-20 rounded-[28px] border border-white/35 bg-white/20 blur-2xl sm:inset-x-[8%] sm:top-4 sm:h-24 sm:rounded-[32px]" />
-        <div className="absolute left-4 top-8 h-44 w-44 rounded-full bg-slate-900/8 blur-3xl sm:left-6 sm:top-10 sm:h-64 sm:w-64" />
-        <div className="absolute right-4 top-10 hidden h-44 w-44 rounded-full bg-sky-300/12 blur-3xl sm:block sm:right-8 sm:top-14 sm:h-56 sm:w-56" />
-        <div className="absolute bottom-0 left-1/2 h-44 w-[26rem] -translate-x-1/2 rounded-full bg-white/30 blur-3xl sm:h-56 sm:w-[48rem]" />
-        <div className="absolute inset-3 rounded-[28px] border border-white/20 sm:inset-6 sm:rounded-[40px] sm:border-white/25" />
-      </div>
-
-      <div className="h-full w-full p-1 sm:p-2 lg:p-2.5">
-        <div className="relative h-full w-full overflow-hidden rounded-[26px] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.44),rgba(255,255,255,0.2))] p-1 shadow-[0_36px_100px_-52px_rgba(15,23,42,0.46)] ring-1 ring-slate-200/55 backdrop-blur-xl sm:rounded-[32px] sm:p-2">
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.22),transparent_30%,rgba(15,23,42,0.05)_100%)]" />
-          <div className="absolute inset-2 rounded-[22px] border border-white/30 sm:inset-3 sm:rounded-[26px]" />
-          <div className="relative h-full w-full overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] sm:rounded-[24px]">
-            <BoardCanvas svgRef={svgRef} benchDrag={benchDrag} />
-          </div>
-        </div>
+      <div className="absolute inset-0">
+        <BoardCanvas svgRef={svgRef} benchDrag={benchDrag} />
       </div>
 
       <div
-        className={`pointer-events-none absolute z-30 flex gap-2 rounded-[22px] border border-white/70 bg-white/82 p-1.5 shadow-[0_20px_48px_-34px_rgba(15,23,42,0.38)] backdrop-blur-2xl transition-all duration-300 ${
+        className={`absolute z-30 opacity-60 transition-opacity duration-300 hover:opacity-100 focus-within:opacity-100 ${
           isMobile
-            ? "left-1/2 top-2 -translate-x-1/2 flex-row"
-            : "left-3 top-3 flex-col sm:left-4 sm:top-4"
+            ? "left-2 top-2"
+            : "left-3 top-3"
         }`}
         style={
-          isMobile
-            ? { top: "calc(env(safe-area-inset-top) + 0.5rem)" }
-            : undefined
+          isMobile ? { top: "calc(env(safe-area-inset-top) + 0.5rem)" } : undefined
         }
       >
-        <button
-          type="button"
-          className={railButtonClass(showLeftControls)}
-          onClick={() => setShowLeftControls((current) => !current)}
-          aria-label="Alternar painel"
-          title="Painel"
+        <div
+          className={`rounded-[18px] border border-white/12 bg-slate-950/10 p-1 shadow-[0_12px_38px_-28px_rgba(15,23,42,0.7)] backdrop-blur-md ${
+            isMobile ? "grid grid-cols-3 gap-1" : "flex flex-col gap-1.5"
+          }`}
         >
-          <LayoutPanelLeft size={15} />
-        </button>
+          <button
+            type="button"
+            className={railButtonClass(showLeftControls)}
+            onClick={() => setShowLeftControls((current) => !current)}
+            aria-label="Alternar painel"
+            title="Painel"
+          >
+            <LayoutPanelLeft size={15} />
+          </button>
 
-        <button
-          type="button"
-          className={railButtonClass(showBottomPanel)}
-          onClick={() => setShowBottomPanel((current) => !current)}
-          aria-label="Alternar jogadores"
-          title="Jogadores"
-        >
-          <UsersRound size={15} />
-        </button>
+          <button
+            type="button"
+            className={railButtonClass(showBottomPanel)}
+            onClick={() => setShowBottomPanel((current) => !current)}
+            aria-label="Alternar jogadores"
+            title="Jogadores"
+          >
+            <UsersRound size={15} />
+          </button>
 
-        <button
-          type="button"
-          className={railButtonClass(showPlaybackPanel)}
-          onClick={() => setShowPlaybackPanel((current) => !current)}
-          aria-label="Alternar animacao"
-          title="Animacao"
-        >
-          {showPlaybackPanel ? <Pause size={15} /> : <Play size={15} />}
-        </button>
+          <button
+            type="button"
+            className={railButtonClass(showPlaybackPanel)}
+            onClick={() => setShowPlaybackPanel((current) => !current)}
+            aria-label="Alternar animacao"
+            title="Animacao"
+          >
+            {showPlaybackPanel ? <Pause size={15} /> : <Play size={15} />}
+          </button>
+
+          <button
+            type="button"
+            className={railButtonClass(false, history.past.length === 0)}
+            onClick={undo}
+            aria-label="Desfazer"
+            title="Desfazer"
+            disabled={history.past.length === 0}
+          >
+            <Undo2 size={15} />
+          </button>
+
+          <button
+            type="button"
+            className={railButtonClass(false, history.future.length === 0)}
+            onClick={redo}
+            aria-label="Refazer"
+            title="Refazer"
+            disabled={history.future.length === 0}
+          >
+            <Redo2 size={15} />
+          </button>
+
+          <button
+            type="button"
+            className={railButtonClass(false)}
+            onClick={resetBoard}
+            aria-label="Resetar quadro"
+            title="Resetar quadro"
+          >
+            <RotateCcw size={15} />
+          </button>
+        </div>
       </div>
 
       {showLeftPanelUI && (
-        <div className="panel-float-in absolute inset-x-2 top-[4.2rem] z-30 pointer-events-auto transition-all duration-300 sm:inset-x-auto sm:left-[5.2rem] sm:top-4">
+        <div className="panel-float-in absolute inset-x-2 top-[4.35rem] z-30 pointer-events-auto transition-all duration-300 sm:inset-x-auto sm:left-[4.7rem] sm:top-3">
           <SimpleControls
             onClose={() => setShowLeftControls(false)}
             onSaveTactic={handleSaveTactic}

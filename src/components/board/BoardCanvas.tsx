@@ -1,13 +1,14 @@
 "use client";
 
 import type React from "react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useTacticalBoardStore } from "@/src/store";
 import type {
   AnchorTarget,
   BenchDragPreview,
   ControlPointKey,
+  EquipmentEntity,
   Id,
   PitchDimensions,
   Point,
@@ -61,6 +62,21 @@ interface MultiDragState {
   initialPositions: Record<Id, Point>;
 }
 
+interface LinePointerDownState {
+  lineId: Id;
+  startClientX: number;
+  startClientY: number;
+}
+
+interface DraggingLineState {
+  lineId: Id;
+  startPoint: Point;
+  currentPoint: Point;
+  snapshot: TacticalLine;
+  resolvedStart: Point;
+  resolvedEnd: Point;
+}
+
 const isLineTool = (tool: string): tool is DraftLine["tool"] =>
   tool === "pass" || tool === "run" || tool === "dribble";
 
@@ -75,8 +91,69 @@ const lerpPoint = (from: Point, to: Point, t: number): Point => ({
   y: lerp(from.y, to.y, t),
 });
 
+const offsetPoint = (point: Point, deltaX: number, deltaY: number): Point => ({
+  x: point.x + deltaX,
+  y: point.y + deltaY,
+});
+
+const cubicPointAt = (
+  start: Point,
+  controlPoint1: Point,
+  controlPoint2: Point,
+  end: Point,
+  t: number,
+): Point => {
+  const mt = 1 - t;
+  return {
+    x:
+      mt * mt * mt * start.x +
+      3 * mt * mt * t * controlPoint1.x +
+      3 * mt * t * t * controlPoint2.x +
+      t * t * t * end.x,
+    y:
+      mt * mt * mt * start.y +
+      3 * mt * mt * t * controlPoint1.y +
+      3 * mt * t * t * controlPoint2.y +
+      t * t * t * end.y,
+  };
+};
+
+const buildDraggedLine = (draggingLine: DraggingLineState): TacticalLine => {
+  const deltaX = draggingLine.currentPoint.x - draggingLine.startPoint.x;
+  const deltaY = draggingLine.currentPoint.y - draggingLine.startPoint.y;
+
+  return {
+    ...draggingLine.snapshot,
+    start: {
+      kind: "free",
+      point: offsetPoint(draggingLine.resolvedStart, deltaX, deltaY),
+    },
+    end: {
+      kind: "free",
+      point: offsetPoint(draggingLine.resolvedEnd, deltaX, deltaY),
+    },
+    controlPoint1: offsetPoint(
+      draggingLine.snapshot.controlPoint1,
+      deltaX,
+      deltaY,
+    ),
+    controlPoint2: offsetPoint(
+      draggingLine.snapshot.controlPoint2,
+      deltaX,
+      deltaY,
+    ),
+  };
+};
+
 const isPlayerEntity = (entity: TacticalEntity): entity is PlayerEntity =>
   entity.kind === "player" || entity.kind === "goalkeeper";
+
+const isEquipmentEntity = (
+  entity: TacticalEntity,
+): entity is EquipmentEntity =>
+  entity.kind === "ball" ||
+  entity.kind === "cone" ||
+  entity.kind === "mannequin";
 
 const toSvgTextAnchor = (
   align: "left" | "center" | "right",
@@ -101,21 +178,26 @@ const renderEntityShape = (
 
   if (entity.kind === "ball") {
     const ballGradientId = `ball-gradient-${entity.id}`;
+    const ballShadowId = `ball-shadow-${entity.id}`;
     return (
       <>
         <defs>
           <radialGradient id={ballGradientId} cx="36%" cy="28%" r="72%">
             <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="58%" stopColor="#f8fafc" />
-            <stop offset="100%" stopColor="#dbe3ec" />
+            <stop offset="52%" stopColor="#f8fafc" />
+            <stop offset="100%" stopColor="#cbd5e1" />
+          </radialGradient>
+          <radialGradient id={ballShadowId} cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stopColor="rgba(15,23,42,0.22)" />
+            <stop offset="100%" stopColor="rgba(15,23,42,0)" />
           </radialGradient>
         </defs>
         <ellipse
-          cx={entity.radius * 0.16}
-          cy={entity.radius * 0.86}
-          rx={entity.radius * 0.74}
-          ry={entity.radius * 0.32}
-          fill="rgba(15,23,42,0.16)"
+          cx={entity.radius * 0.12}
+          cy={entity.radius * 0.96}
+          rx={entity.radius * 0.96}
+          ry={entity.radius * 0.42}
+          fill={`url(#${ballShadowId})`}
         />
         <circle
           r={entity.radius}
@@ -124,21 +206,31 @@ const renderEntityShape = (
           strokeWidth={strokeWidth}
         />
         <path
-          d={`M 0 ${-entity.radius * 0.74} C ${entity.radius * 0.33} ${-entity.radius * 0.5}, ${entity.radius * 0.33} ${entity.radius * 0.5}, 0 ${entity.radius * 0.74}`}
-          fill="none"
-          stroke="rgba(30,41,59,0.24)"
-          strokeWidth={0.2}
+          d={`M 0 ${-entity.radius * 0.56} L ${entity.radius * 0.4} ${-entity.radius * 0.22} L ${entity.radius * 0.26} ${entity.radius * 0.26} L ${-entity.radius * 0.26} ${entity.radius * 0.26} L ${-entity.radius * 0.4} ${-entity.radius * 0.22} Z`}
+          fill="rgba(15,23,42,0.72)"
         />
         <path
-          d={`M ${-entity.radius * 0.74} 0 C ${-entity.radius * 0.5} ${-entity.radius * 0.33}, ${entity.radius * 0.5} ${-entity.radius * 0.33}, ${entity.radius * 0.74} 0`}
+          d={`M ${-entity.radius * 0.82} ${-entity.radius * 0.08} Q ${-entity.radius * 0.38} ${-entity.radius * 0.62}, 0 ${-entity.radius * 0.56} Q ${entity.radius * 0.38} ${-entity.radius * 0.62}, ${entity.radius * 0.82} ${-entity.radius * 0.08}`}
+          fill="none"
+          stroke="rgba(30,41,59,0.28)"
+          strokeWidth={0.18}
+        />
+        <path
+          d={`M 0 ${-entity.radius * 0.56} C ${entity.radius * 0.58} ${-entity.radius * 0.12}, ${entity.radius * 0.44} ${entity.radius * 0.62}, 0 ${entity.radius * 0.84}`}
+          fill="none"
+          stroke="rgba(30,41,59,0.22)"
+          strokeWidth={0.17}
+        />
+        <path
+          d={`M ${-entity.radius * 0.84} 0 C ${-entity.radius * 0.46} ${-entity.radius * 0.44}, ${entity.radius * 0.46} ${-entity.radius * 0.44}, ${entity.radius * 0.84} 0`}
           fill="none"
           stroke="rgba(30,41,59,0.2)"
           strokeWidth={0.18}
         />
         <circle
-          cx={-entity.radius * 0.35}
-          cy={-entity.radius * 0.35}
-          r={entity.radius * 0.2}
+          cx={-entity.radius * 0.3}
+          cy={-entity.radius * 0.34}
+          r={entity.radius * 0.22}
           fill="rgba(255,255,255,0.42)"
         />
       </>
@@ -148,51 +240,72 @@ const renderEntityShape = (
   if (entity.kind === "cone") {
     const r = entity.radius;
     const coneGradientId = `cone-gradient-${entity.id}`;
+    const coneBaseId = `cone-base-${entity.id}`;
     return (
       <>
         <defs>
           <linearGradient
             id={coneGradientId}
-            x1="0%"
+            x1="10%"
             y1="0%"
-            x2="100%"
+            x2="90%"
             y2="100%"
           >
-            <stop offset="0%" stopColor="#fdc48a" />
-            <stop offset="48%" stopColor={entity.color} />
-            <stop offset="100%" stopColor="#b45309" />
+            <stop offset="0%" stopColor="#fed7aa" />
+            <stop offset="38%" stopColor={entity.color} />
+            <stop offset="100%" stopColor="#9a3412" />
+          </linearGradient>
+          <linearGradient id={coneBaseId} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#f97316" />
+            <stop offset="100%" stopColor="#7c2d12" />
           </linearGradient>
         </defs>
         <ellipse
           cx={0}
-          cy={r * 0.98}
-          rx={r * 0.74}
-          ry={r * 0.2}
+          cy={r * 1.08}
+          rx={r * 0.96}
+          ry={r * 0.24}
           fill="rgba(15,23,42,0.18)"
         />
-        <polygon
-          points={`0,${-r} ${r * 0.92},${r * 0.95} ${-r * 0.92},${r * 0.95}`}
+        <path
+          d={`M 0 ${-r * 1.12} L ${r * 0.92} ${r * 0.78} Q ${r * 0.7} ${r * 1.02}, 0 ${r * 1.08} Q ${-r * 0.7} ${r * 1.02}, ${-r * 0.92} ${r * 0.78} Z`}
           fill={`url(#${coneGradientId})`}
           stroke={stroke}
           strokeWidth={strokeWidth}
         />
-        <path
-          d={`M ${-r * 0.58} ${r * 0.16} L ${r * 0.58} ${r * 0.16}`}
-          stroke="rgba(255,255,255,0.4)"
-          strokeWidth={0.16}
+        <ellipse
+          cx={0}
+          cy={r * 0.94}
+          rx={r * 1.06}
+          ry={r * 0.18}
+          fill={`url(#${coneBaseId})`}
+          opacity={0.94}
         />
         <path
-          d={`M ${-r * 0.48} ${-r * 0.2} L ${r * 0.48} ${-r * 0.2}`}
+          d={`M ${-r * 0.54} ${r * 0.08} H ${r * 0.54}`}
+          stroke="rgba(255,255,255,0.5)"
+          strokeWidth={0.18}
+          strokeLinecap="round"
+        />
+        <path
+          d={`M ${-r * 0.44} ${-r * 0.22} H ${r * 0.44}`}
+          stroke="rgba(255,255,255,0.34)"
+          strokeWidth={0.15}
+          strokeLinecap="round"
+        />
+        <path
+          d={`M ${-r * 0.16} ${-r * 0.66} Q 0 ${-r * 0.88}, ${r * 0.18} ${-r * 0.4}`}
           stroke="rgba(255,255,255,0.3)"
           strokeWidth={0.14}
+          fill="none"
         />
       </>
     );
   }
 
   if (entity.kind === "mannequin") {
-    const width = entity.radius * 1.6;
-    const height = entity.radius * 2.6;
+    const width = entity.radius * 1.58;
+    const height = entity.radius * 2.82;
     const mannequinGradientId = `mannequin-gradient-${entity.id}`;
     return (
       <>
@@ -212,46 +325,73 @@ const renderEntityShape = (
 
         <ellipse
           cx={0}
-          cy={height / 2 + entity.radius * 0.18}
-          rx={width * 0.4}
-          ry={entity.radius * 0.2}
+          cy={height / 2 + entity.radius * 0.24}
+          rx={width * 0.5}
+          ry={entity.radius * 0.24}
           fill="rgba(15,23,42,0.18)"
+        />
+
+        <circle
+          cx={0}
+          cy={-height * 0.62}
+          r={entity.radius * 0.34}
+          fill="#e2e8f0"
+          stroke={stroke}
+          strokeWidth={strokeWidth}
         />
 
         <rect
           x={-width / 2}
-          y={-height / 2}
+          y={-height * 0.44}
           width={width}
-          height={height}
-          rx={0.55}
+          height={height * 0.88}
+          rx={0.5}
           fill={`url(#${mannequinGradientId})`}
           stroke={stroke}
           strokeWidth={strokeWidth}
         />
 
         <line
-          x1={-width * 0.3}
-          y1={-height * 0.18}
-          x2={width * 0.3}
-          y2={-height * 0.18}
+          x1={-width * 0.34}
+          y1={-height * 0.1}
+          x2={width * 0.34}
+          y2={-height * 0.1}
           stroke="rgba(255,255,255,0.3)"
           strokeWidth={0.14}
         />
         <line
-          x1={-width * 0.3}
-          y1={height * 0.08}
-          x2={width * 0.3}
-          y2={height * 0.08}
+          x1={-width * 0.34}
+          y1={height * 0.1}
+          x2={width * 0.34}
+          y2={height * 0.1}
           stroke="rgba(255,255,255,0.24)"
           strokeWidth={0.14}
         />
         <line
-          x1={-width * 0.2}
-          y1={-height * 0.36}
-          x2={-width * 0.2}
-          y2={height * 0.3}
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth={0.12}
+          x1={0}
+          y1={height * 0.36}
+          x2={0}
+          y2={height * 0.58}
+          stroke="#475569"
+          strokeWidth={0.18}
+          strokeLinecap="round"
+        />
+        <line
+          x1={-width * 0.4}
+          y1={height * 0.56}
+          x2={width * 0.4}
+          y2={height * 0.56}
+          stroke="#64748b"
+          strokeWidth={0.2}
+          strokeLinecap="round"
+        />
+        <path
+          d={`M ${-width * 0.18} ${-height * 0.26} L 0 ${-height * 0.4} L ${width * 0.18} ${-height * 0.26}`}
+          fill="none"
+          stroke="rgba(255,255,255,0.28)"
+          strokeWidth={0.13}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </>
     );
@@ -352,6 +492,52 @@ const renderEntityShape = (
   );
 };
 
+interface CanvasActionButtonProps {
+  x: number;
+  y: number;
+  label: string;
+  tone?: "neutral" | "danger";
+  readableTextTransform?: string;
+  onPointerDown: (event: React.PointerEvent<SVGGElement>) => void;
+}
+
+function CanvasActionButton({
+  x,
+  y,
+  label,
+  tone = "neutral",
+  readableTextTransform,
+  onPointerDown,
+}: CanvasActionButtonProps) {
+  const isDanger = tone === "danger";
+
+  return (
+    <g className="cursor-pointer" onPointerDown={onPointerDown}>
+      <circle
+        cx={x}
+        cy={y}
+        r={1.18}
+        fill="rgba(255,255,255,0.92)"
+        stroke={isDanger ? "rgba(244,63,94,0.28)" : "rgba(15,23,42,0.12)"}
+        strokeWidth={0.12}
+      />
+      <g transform={`translate(${x} ${y})`}>
+        <g transform={readableTextTransform}>
+          <text
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize={0.78}
+            fontWeight={700}
+            fill={isDanger ? "#e11d48" : "#0f172a"}
+          >
+            {label}
+          </text>
+        </g>
+      </g>
+    </g>
+  );
+}
+
 export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
   const boardLayerRef = useRef<SVGGElement | null>(null);
   const settings = useTacticalBoardStore((state) => state.settings);
@@ -372,11 +558,17 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
   const setSelection = useTacticalBoardStore((state) => state.setSelection);
   const clearSelection = useTacticalBoardStore((state) => state.clearSelection);
   const moveEntity = useTacticalBoardStore((state) => state.moveEntity);
+  const rotateEntity = useTacticalBoardStore((state) => state.rotateEntity);
+  const removeEntity = useTacticalBoardStore((state) => state.removeEntity);
   const addLine = useTacticalBoardStore((state) => state.addLine);
   const addFreehand = useTacticalBoardStore((state) => state.addFreehand);
   const addPolygon = useTacticalBoardStore((state) => state.addPolygon);
   const addText = useTacticalBoardStore((state) => state.addText);
   const updateText = useTacticalBoardStore((state) => state.updateText);
+  const updateLine = useTacticalBoardStore((state) => state.updateLine);
+  const removeOverlayById = useTacticalBoardStore(
+    (state) => state.removeOverlayById,
+  );
   const updateLineControlPoint = useTacticalBoardStore(
     (state) => state.updateLineControlPoint,
   );
@@ -400,6 +592,11 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
   } | null>(null);
   const [draggingTextId, setDraggingTextId] = useState<Id | null>(null);
   const [dragTextPoint, setDragTextPoint] = useState<Point | null>(null);
+  const [linePointerDown, setLinePointerDown] =
+    useState<LinePointerDownState | null>(null);
+  const [draggingLine, setDraggingLine] = useState<DraggingLineState | null>(
+    null,
+  );
 
   const isPortraitRotated = settings.orientation === "portrait-rotated";
   const pitchDimensions: PitchDimensions =
@@ -453,8 +650,15 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
     if (!activeFrame) {
       return {
         positions: {} as Record<Id, Point>,
+        rotations: {} as Record<Id, number>,
         visibility: {} as Record<Id, boolean>,
-        lines: [] as TacticalLine[],
+        overlays: {
+          lines: [] as TacticalLine[],
+          freehand: [],
+          polygons: [],
+          texts: [],
+          rulers: [],
+        },
       };
     }
 
@@ -465,6 +669,7 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
       if (fromFrame && toFrame) {
         const progress = clamp(playbackProgress, 0, 1);
         const positions: Record<Id, Point> = {};
+        const rotations: Record<Id, number> = {};
         const visibility: Record<Id, boolean> = {};
 
         Object.values(entities).forEach((entity) => {
@@ -474,12 +679,15 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
           const toPoint =
             toFrame.entityStates[entity.id]?.position ?? fromPoint;
           positions[entity.id] = lerpPoint(fromPoint, toPoint, progress);
+          rotations[entity.id] =
+            fromFrame.entityStates[entity.id]?.rotation ?? entity.rotation ?? 0;
           visibility[entity.id] =
             fromFrame.entityStates[entity.id]?.visible ?? true;
         });
 
         return {
           positions,
+          rotations,
           visibility,
           overlays: fromFrame.overlays,
         };
@@ -487,16 +695,20 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
     }
 
     const positions: Record<Id, Point> = {};
+    const rotations: Record<Id, number> = {};
     const visibility: Record<Id, boolean> = {};
     Object.values(entities).forEach((entity) => {
       positions[entity.id] =
         activeFrame.entityStates[entity.id]?.position ?? entity.defaultPosition;
+      rotations[entity.id] =
+        activeFrame.entityStates[entity.id]?.rotation ?? entity.rotation ?? 0;
       visibility[entity.id] =
         activeFrame.entityStates[entity.id]?.visible ?? true;
     });
 
     return {
       positions,
+      rotations,
       visibility,
       overlays: activeFrame.overlays,
     };
@@ -584,6 +796,49 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
 
     return { kind: "free", point: clamped };
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.isContentEditable ||
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT")
+      ) {
+        return;
+      }
+
+      if (event.key !== "Delete" && event.key !== "Backspace") {
+        return;
+      }
+
+      const selectedEntity = selection.activeEntityId
+        ? entities[selection.activeEntityId]
+        : null;
+
+      if (selectedEntity && isEquipmentEntity(selectedEntity)) {
+        event.preventDefault();
+        removeEntity(selectedEntity.id);
+        return;
+      }
+
+      if (selection.activeOverlayId) {
+        event.preventDefault();
+        removeOverlayById(selection.activeOverlayId);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    entities,
+    removeEntity,
+    removeOverlayById,
+    selection.activeEntityId,
+    selection.activeOverlayId,
+  ]);
 
   const startLineDraft = (
     tool: DraftLine["tool"],
@@ -835,6 +1090,45 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
       return;
     }
 
+    if (linePointerDown) {
+      if (!draggingLine) {
+        const moveDistance = distance(
+          { x: linePointerDown.startClientX, y: linePointerDown.startClientY },
+          { x: event.clientX, y: event.clientY },
+        );
+
+        if (moveDistance >= 4) {
+          const line = (renderable.overlays?.lines ?? []).find(
+            (item) => item.id === linePointerDown.lineId,
+          );
+
+          if (!line) {
+            setLinePointerDown(null);
+            return;
+          }
+
+          setDraggingLine({
+            lineId: line.id,
+            startPoint: point,
+            currentPoint: point,
+            snapshot: line,
+            resolvedStart: resolveAnchor(line.start, renderable.positions, entities),
+            resolvedEnd: resolveAnchor(line.end, renderable.positions, entities),
+          });
+        }
+      } else {
+        setDraggingLine((current) =>
+          current
+            ? {
+                ...current,
+                currentPoint: point,
+              }
+            : null,
+        );
+      }
+      return;
+    }
+
     if (editingControlPoint) {
       updateLineControlPoint(
         editingControlPoint.lineId,
@@ -931,6 +1225,22 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
       setTextPointerDown(null);
       setDraggingTextId(null);
       setDragTextPoint(null);
+      return;
+    }
+
+    if (linePointerDown) {
+      if (draggingLine) {
+        const nextLine = buildDraggedLine(draggingLine);
+        updateLine(nextLine.id, {
+          start: nextLine.start,
+          end: nextLine.end,
+          controlPoint1: nextLine.controlPoint1,
+          controlPoint2: nextLine.controlPoint2,
+        });
+      }
+
+      setLinePointerDown(null);
+      setDraggingLine(null);
       return;
     }
 
@@ -1046,10 +1356,58 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
     return base;
   };
 
+  const getRenderedEntityRotation = (entity: TacticalEntity): number =>
+    renderable.rotations[entity.id] ?? entity.rotation ?? 0;
+
   const selectedLine =
     renderable.overlays?.lines?.find(
       (line) => line.id === selection.activeOverlayId,
     ) ?? null;
+  const renderedSelectedLine =
+    selectedLine && draggingLine?.lineId === selectedLine.id
+      ? buildDraggedLine(draggingLine)
+      : selectedLine;
+  const selectedEntity = selection.activeEntityId
+    ? entities[selection.activeEntityId]
+    : null;
+  const selectedEquipment =
+    selectedEntity && isEquipmentEntity(selectedEntity) ? selectedEntity : null;
+  const selectedEquipmentVisible =
+    selectedEquipment &&
+    (renderable.visibility[selectedEquipment.id] ?? true) &&
+    filteredEntityEntries.some((entity) => entity.id === selectedEquipment.id)
+      ? selectedEquipment
+      : null;
+  const selectedEquipmentPosition = selectedEquipmentVisible
+    ? getRenderedEntityPosition(selectedEquipmentVisible)
+    : null;
+  const selectedText =
+    renderable.overlays?.texts?.find(
+      (textItem) => textItem.id === selection.activeOverlayId,
+    ) ?? null;
+  const selectedTextPosition =
+    selectedText && draggingTextId === selectedText.id && dragTextPoint
+      ? dragTextPoint
+      : selectedText?.position ?? null;
+  const selectedTextActionPoint = selectedTextPosition
+    ? {
+        x: selectedTextPosition.x,
+        y: selectedTextPosition.y - 3.3,
+      }
+    : null;
+  const selectedLineActionPoint = renderedSelectedLine
+    ? cubicPointAt(
+        resolveAnchor(
+          renderedSelectedLine.start,
+          renderable.positions,
+          entities,
+        ),
+        renderedSelectedLine.controlPoint1,
+        renderedSelectedLine.controlPoint2,
+        resolveAnchor(renderedSelectedLine.end, renderable.positions, entities),
+        0.5,
+      )
+    : null;
   const draggedBenchEntity = benchDrag
     ? entities[benchDrag.playerId]
     : undefined;
@@ -1078,7 +1436,8 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
       <svg
         ref={svgRef}
         viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-        className="h-full w-full touch-none select-none"
+        preserveAspectRatio="none"
+        className="block h-full w-full touch-none select-none"
         onPointerDown={handleBoardPointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -1167,43 +1526,67 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
 
           <g>
             {(renderable.overlays?.lines ?? []).map((line) => {
+              const renderedLine =
+                draggingLine?.lineId === line.id ? buildDraggedLine(draggingLine) : line;
               const start = resolveAnchor(
-                line.start,
+                renderedLine.start,
                 renderable.positions,
                 entities,
               );
               const end = resolveAnchor(
-                line.end,
+                renderedLine.end,
                 renderable.positions,
                 entities,
               );
               const isSelected = selection.activeOverlayId === line.id;
               const path =
-                line.type === "dribble"
-                  ? buildWavyPath(start, line, end)
-                  : buildCubicPath(start, line, end);
+                renderedLine.type === "dribble"
+                  ? buildWavyPath(start, renderedLine, end)
+                  : buildCubicPath(start, renderedLine, end);
 
               return (
                 <g key={line.id}>
                   <path
                     d={path}
                     fill="none"
-                    stroke={line.color}
-                    strokeWidth={line.width + (isSelected ? 0.35 : 0)}
+                    stroke={renderedLine.color}
+                    strokeWidth={renderedLine.width + (isSelected ? 0.24 : 0)}
                     strokeDasharray={
-                      line.type === "run" ? "2.4 2.1" : undefined
+                      renderedLine.type === "run" ? "2.4 2.1" : undefined
                     }
                     markerEnd="url(#motus-arrow)"
-                    opacity={line.opacity}
-                    className="cursor-pointer"
+                    opacity={renderedLine.opacity}
+                    className={
+                      activeTool === "select"
+                        ? "cursor-grab active:cursor-grabbing"
+                        : "cursor-pointer"
+                    }
                     onPointerDown={(event) => {
                       event.stopPropagation();
+                      event.preventDefault();
                       setSelection({
                         overlayIds: [line.id],
                         activeOverlayId: line.id,
                         entityIds: [],
                         activeEntityId: null,
                       });
+
+                      if (activeTool !== "select") {
+                        return;
+                      }
+
+                      const svg = svgRef.current;
+                      if (!svg) {
+                        return;
+                      }
+
+                      setLinePointerDown({
+                        lineId: line.id,
+                        startClientX: event.clientX,
+                        startClientY: event.clientY,
+                      });
+                      setDraggingLine(null);
+                      svg.setPointerCapture(event.pointerId);
                     }}
                   />
                 </g>
@@ -1417,6 +1800,7 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
               .filter((entity) => renderable.visibility[entity.id] ?? true)
               .map((entity) => {
                 const position = getRenderedEntityPosition(entity);
+                const rotation = getRenderedEntityRotation(entity);
                 const isSelected =
                   selection.activeEntityId === entity.id ||
                   selection.entityIds.includes(entity.id);
@@ -1426,10 +1810,14 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                   (entity.kind === "player" || entity.kind === "goalkeeper"
                     ? isHovered
                     : false);
-                const mobileConeTransform =
+                const entityTransform = [
+                  rotation !== 0 ? `rotate(${rotation})` : null,
                   isPortraitRotated && entity.kind === "cone"
                     ? "rotate(90)"
-                    : undefined;
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" ");
                 const entityLabel =
                   entity.kind === "player" || entity.kind === "goalkeeper"
                     ? entity.name
@@ -1496,7 +1884,7 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                       />
                     )}
 
-                    <g transform={mobileConeTransform}>
+                    <g transform={entityTransform || undefined}>
                       {renderEntityShape(entity, readableTextTransform)}
                     </g>
 
@@ -1529,43 +1917,125 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
               })}
           </g>
 
-          {selectedLine && activeTool === "select" && (
+          {selectedEquipmentVisible &&
+            selectedEquipmentPosition &&
+            activeTool === "select" && (
+            <g
+              transform={`translate(${selectedEquipmentPosition.x} ${Math.max(4.4, selectedEquipmentPosition.y - selectedEquipmentVisible.radius - 3.8)})`}
+            >
+              {selectedEquipmentVisible.kind !== "ball" && (
+                <>
+                  <CanvasActionButton
+                    x={-2.55}
+                    y={0}
+                    label="<"
+                    readableTextTransform={readableTextTransform}
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                      event.preventDefault();
+                      rotateEntity(selectedEquipmentVisible.id, -45);
+                    }}
+                  />
+                  <CanvasActionButton
+                    x={0}
+                    y={0}
+                    label=">"
+                    readableTextTransform={readableTextTransform}
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                      event.preventDefault();
+                      rotateEntity(selectedEquipmentVisible.id, 45);
+                    }}
+                  />
+                </>
+              )}
+
+              <CanvasActionButton
+                x={selectedEquipmentVisible.kind === "ball" ? 0 : 2.55}
+                y={0}
+                label="x"
+                tone="danger"
+                readableTextTransform={readableTextTransform}
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  removeEntity(selectedEquipmentVisible.id);
+                }}
+              />
+            </g>
+          )}
+
+          {selectedText &&
+            selectedTextActionPoint &&
+            activeTool === "select" &&
+            editingTextId !== selectedText.id &&
+            draggingTextId !== selectedText.id && (
+              <CanvasActionButton
+                x={selectedTextActionPoint.x}
+                y={selectedTextActionPoint.y}
+                label="x"
+                tone="danger"
+                readableTextTransform={readableTextTransform}
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  removeOverlayById(selectedText.id);
+                }}
+              />
+            )}
+
+          {renderedSelectedLine &&
+            selectedLineActionPoint &&
+            activeTool === "select" &&
+            !draggingLine && (
             <g>
+              <CanvasActionButton
+                x={selectedLineActionPoint.x}
+                y={selectedLineActionPoint.y - 2.1}
+                label="x"
+                tone="danger"
+                readableTextTransform={readableTextTransform}
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  removeOverlayById(renderedSelectedLine.id);
+                }}
+              />
               <line
-                x1={selectedLine.controlPoint1.x}
-                y1={selectedLine.controlPoint1.y}
-                x2={selectedLine.controlPoint2.x}
-                y2={selectedLine.controlPoint2.y}
-                stroke="rgba(15,23,42,0.35)"
-                strokeWidth={0.2}
-                strokeDasharray="1 1"
+                x1={renderedSelectedLine.controlPoint1.x}
+                y1={renderedSelectedLine.controlPoint1.y}
+                x2={renderedSelectedLine.controlPoint2.x}
+                y2={renderedSelectedLine.controlPoint2.y}
+                stroke="rgba(15,23,42,0.22)"
+                strokeWidth={0.16}
+                strokeDasharray="0.8 0.8"
               />
               <circle
-                cx={selectedLine.controlPoint1.x}
-                cy={selectedLine.controlPoint1.y}
-                r={0.95}
+                cx={renderedSelectedLine.controlPoint1.x}
+                cy={renderedSelectedLine.controlPoint1.y}
+                r={0.74}
                 fill="#2563eb"
                 stroke="#ffffff"
-                strokeWidth={0.22}
+                strokeWidth={0.18}
                 onPointerDown={(event) =>
                   handleControlPointPointerDown(
                     event,
-                    selectedLine.id,
+                    renderedSelectedLine.id,
                     "controlPoint1",
                   )
                 }
               />
               <circle
-                cx={selectedLine.controlPoint2.x}
-                cy={selectedLine.controlPoint2.y}
-                r={0.95}
+                cx={renderedSelectedLine.controlPoint2.x}
+                cy={renderedSelectedLine.controlPoint2.y}
+                r={0.74}
                 fill="#0f172a"
                 stroke="#ffffff"
-                strokeWidth={0.22}
+                strokeWidth={0.18}
                 onPointerDown={(event) =>
                   handleControlPointPointerDown(
                     event,
-                    selectedLine.id,
+                    renderedSelectedLine.id,
                     "controlPoint2",
                   )
                 }

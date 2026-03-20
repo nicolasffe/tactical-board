@@ -93,6 +93,10 @@ export function PitchLayer({
   const scaledCenterCircleRadius =
     centerCircleRadius * Math.min(scaleX, scaleY);
   const scaledPenaltySpotDistance = 11 * scaleX;
+  const goalTop = (height - scaledGoalFrameWidth) / 2;
+  const goalBottom = goalTop + scaledGoalFrameWidth;
+  const goalInset = 0.8;
+  const goalVisualDepth = Math.max(1.4, scaledGoalFrameDepth + 0.5);
   const palette = getPitchPalette(pitchStyle, theme);
   const hasStripes =
     pitchStyle === "realistic-grass" || pitchStyle === "blueprint";
@@ -130,6 +134,19 @@ export function PitchLayer({
             fill={palette.stripeB ?? "transparent"}
           />
         </pattern>
+
+        <pattern
+          id="goalNetPattern"
+          width="2.6"
+          height="2.6"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 0 0 L 2.6 2.6 M 2.6 0 L 0 2.6"
+            stroke="rgba(255,255,255,0.28)"
+            strokeWidth="0.08"
+          />
+        </pattern>
       </defs>
 
       <rect
@@ -162,6 +179,78 @@ export function PitchLayer({
           rx={1}
         />
       )}
+
+      <g>
+        <g opacity={pitchStyle === "blueprint" ? 0.74 : 1}>
+          <rect
+            x={goalInset}
+            y={goalTop}
+            width={goalVisualDepth}
+            height={scaledGoalFrameWidth}
+            fill="url(#goalNetPattern)"
+            opacity={0.72}
+          />
+          <line
+            x1={goalInset}
+            y1={goalTop}
+            x2={goalInset + goalVisualDepth}
+            y2={goalTop}
+            stroke="rgba(255,255,255,0.9)"
+            strokeWidth={0.24}
+          />
+          <line
+            x1={goalInset}
+            y1={goalBottom}
+            x2={goalInset + goalVisualDepth}
+            y2={goalBottom}
+            stroke="rgba(255,255,255,0.9)"
+            strokeWidth={0.24}
+          />
+          <line
+            x1={goalInset + goalVisualDepth}
+            y1={goalTop}
+            x2={goalInset + goalVisualDepth}
+            y2={goalBottom}
+            stroke="rgba(255,255,255,0.72)"
+            strokeWidth={0.18}
+          />
+        </g>
+
+        <g opacity={pitchStyle === "blueprint" ? 0.74 : 1}>
+          <rect
+            x={width - goalInset - goalVisualDepth}
+            y={goalTop}
+            width={goalVisualDepth}
+            height={scaledGoalFrameWidth}
+            fill="url(#goalNetPattern)"
+            opacity={0.72}
+          />
+          <line
+            x1={width - goalInset - goalVisualDepth}
+            y1={goalTop}
+            x2={width - goalInset}
+            y2={goalTop}
+            stroke="rgba(255,255,255,0.9)"
+            strokeWidth={0.24}
+          />
+          <line
+            x1={width - goalInset - goalVisualDepth}
+            y1={goalBottom}
+            x2={width - goalInset}
+            y2={goalBottom}
+            stroke="rgba(255,255,255,0.9)"
+            strokeWidth={0.24}
+          />
+          <line
+            x1={width - goalInset - goalVisualDepth}
+            y1={goalTop}
+            x2={width - goalInset - goalVisualDepth}
+            y2={goalBottom}
+            stroke="rgba(255,255,255,0.72)"
+            strokeWidth={0.18}
+          />
+        </g>
+      </g>
 
       <g stroke={palette.markings} strokeWidth={0.35} fill="none">
         <rect
@@ -220,14 +309,14 @@ export function PitchLayer({
         />
 
         <rect
-          x={0.8}
-          y={(height - scaledGoalFrameWidth) / 2}
+          x={goalInset}
+          y={goalTop}
           width={scaledGoalFrameDepth}
           height={scaledGoalFrameWidth}
         />
         <rect
-          x={width - scaledGoalFrameDepth - 0.8}
-          y={(height - scaledGoalFrameWidth) / 2}
+          x={width - scaledGoalFrameDepth - goalInset}
+          y={goalTop}
           width={scaledGoalFrameDepth}
           height={scaledGoalFrameWidth}
         />

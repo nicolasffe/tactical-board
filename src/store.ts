@@ -87,6 +87,7 @@ interface TacticalBoardStore {
   setBoardSettings: (updates: Partial<BoardSettings>) => void;
   addEntity: (input: AddEntityInput) => void;
   updateEntity: (entityId: Id, updates: Partial<TacticalEntity>) => void;
+  rotateEntity: (entityId: Id, deltaDegrees: number, frameId?: Id) => void;
   moveEntity: (entityId: Id, position: Point, frameId?: Id) => void;
   removePlayerFromPitch: (playerId: Id, frameId?: Id) => void;
   returnPlayerToPitch: (playerId: Id, frameId?: Id) => void;
@@ -177,6 +178,11 @@ const isOutfieldPlayerEntity = (
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
+
+const normalizeRotation = (value: number): number => {
+  const normalized = value % 360;
+  return normalized < 0 ? normalized + 360 : normalized;
+};
 
 const lerp = (from: number, to: number, t: number): number =>
   from + (to - from) * t;
@@ -697,6 +703,68 @@ const getTeamOnPitchCount = (
     (entity) => frame.entityStates[entity.id]?.visible ?? true,
   ).length;
 
+const getFormationSortValue = (
+  frame: TimelineFrame,
+  player: PlayerEntity,
+): Point => frame.entityStates[player.id]?.position ?? player.defaultPosition;
+
+const sortPlayersForFormation = (
+  players: PlayerEntity[],
+  frame: TimelineFrame,
+  team: TeamSide,
+): PlayerEntity[] =>
+  [...players].sort((a, b) => {
+    const aPoint = getFormationSortValue(frame, a);
+    const bPoint = getFormationSortValue(frame, b);
+    const xDelta =
+      team === "home" ? aPoint.x - bPoint.x : bPoint.x - aPoint.x;
+
+    if (Math.abs(xDelta) > 0.05) {
+      return xDelta;
+    }
+
+    const yDelta = aPoint.y - bPoint.y;
+    if (Math.abs(yDelta) > 0.05) {
+      return yDelta;
+    }
+
+    return a.number - b.number;
+  });
+
+const getVisiblePlayersForFormation = (
+  frame: TimelineFrame,
+  entities: Record<Id, TacticalEntity>,
+  team: TeamSide,
+): PlayerEntity[] =>
+  sortPlayersForFormation(
+    getTeamEntities(entities, team).filter(
+      (entity) =>
+        isOutfieldPlayerEntity(entity) &&
+        (frame.entityStates[entity.id]?.visible ?? true),
+    ),
+    frame,
+    team,
+  );
+
+const getGoalkeeperForFormation = (
+  frame: TimelineFrame,
+  entities: Record<Id, TacticalEntity>,
+  team: TeamSide,
+): (PlayerEntity & { kind: "goalkeeper" }) | undefined =>
+  Object.values(entities)
+    .filter(isGoalkeeperEntity)
+    .filter((entity) => entity.team === team)
+    .sort((a, b) => {
+      const aVisible = Number(frame.entityStates[a.id]?.visible ?? true);
+      const bVisible = Number(frame.entityStates[b.id]?.visible ?? true);
+
+      if (aVisible !== bVisible) {
+        return bVisible - aVisible;
+      }
+
+      return a.number - b.number;
+    })[0];
+
 const getReturnPositionForPlayer = (
   frame: TimelineFrame,
   entities: Record<Id, TacticalEntity>,
@@ -935,6 +1003,33 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
       } as TacticalEntity;
 
       draft.entities[entityId] = nextEntity;
+    });
+  },
+
+  rotateEntity: (entityId, deltaDegrees, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const entity = draft.entities[entityId];
+      if (!entity) {
+        return false;
+      }
+
+      const targetFrameId = frameId ?? draft.activeFrameId;
+      const frame = getFrameById(draft.frames, targetFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const current = frame.entityStates[entityId];
+      const basePosition = current?.position ?? entity.defaultPosition;
+      const nextRotation = normalizeRotation(
+        (current?.rotation ?? entity.rotation ?? 0) + deltaDegrees,
+      );
+
+      frame.entityStates[entityId] = {
+        position: basePosition,
+        rotation: nextRotation,
+        visible: current?.visible ?? true,
+      };
     });
   },
 
@@ -1603,14 +1698,12 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
 
       const dimensions = getDimensionsByPreset(draft.settings.pitchPreset);
 
-      const gk = Object.values(draft.entities).find(
-        (entity) => isGoalkeeperEntity(entity) && entity.team === team,
+      const gk = getGoalkeeperForFormation(frame, draft.entities, team);
+      const outfieldPlayers = getVisiblePlayersForFormation(
+        frame,
+        draft.entities,
+        team,
       );
-
-      const outfieldPlayers = Object.values(draft.entities)
-        .filter(isOutfieldPlayerEntity)
-        .filter((entity) => entity.team === team)
-        .sort((a, b) => a.number - b.number);
 
       const outfieldPositions = buildOutfieldPositions(
         formation,
