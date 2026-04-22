@@ -62,14 +62,15 @@ const getPitchPalette = (
     };
   }
 
+  // Realistic grass - Tactical Pad style with horizontal stripes
   return {
-    surface: "url(#pitchGradient)",
-    stripeA: "rgba(255,255,255,0.1)",
-    stripeB: "rgba(15,23,42,0.08)",
-    markings: theme === "high-contrast" ? "#ffffff" : "rgba(248,250,252,0.94)",
-    grid: "rgba(15,23,42,0.22)",
-    zonesStroke: "rgba(15,23,42,0.32)",
-    zonesFill: "rgba(248,250,252,0.08)",
+    surface: "#3d8b40",
+    stripeA: "#4a9a4d",
+    stripeB: "#357a38",
+    markings: theme === "high-contrast" ? "#ffffff" : "rgba(255,255,255,0.95)",
+    grid: "rgba(255,255,255,0.15)",
+    zonesStroke: "rgba(255,255,255,0.3)",
+    zonesFill: "rgba(255,255,255,0.05)",
   };
 };
 
@@ -104,34 +105,23 @@ export function PitchLayer({
   return (
     <g>
       <defs>
-        <linearGradient id="pitchGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#4f9767" />
-          <stop offset="38%" stopColor="#3f8758" />
-          <stop offset="100%" stopColor="#2f6947" />
-        </linearGradient>
-
-        <radialGradient id="pitchLight" cx="50%" cy="42%" r="72%">
-          <stop offset="0%" stopColor="rgba(255,255,255,0.18)" />
-          <stop offset="58%" stopColor="rgba(255,255,255,0.06)" />
-          <stop offset="100%" stopColor="rgba(15,23,42,0.12)" />
-        </radialGradient>
-
+        {/* Horizontal stripes pattern - Tactical Pad style */}
         <pattern
-          id="pitchStripes"
-          width="14"
-          height="68"
+          id="pitchHorizontalStripes"
+          width={width}
+          height={height / 8}
           patternUnits="userSpaceOnUse"
         >
           <rect
-            width="7"
-            height="68"
-            fill={palette.stripeA ?? "rgba(255,255,255,0.06)"}
+            width={width}
+            height={height / 16}
+            fill={palette.stripeA ?? "#4a9a4d"}
           />
           <rect
-            x="7"
-            width="7"
-            height="68"
-            fill={palette.stripeB ?? "transparent"}
+            y={height / 16}
+            width={width}
+            height={height / 16}
+            fill={palette.stripeB ?? "#357a38"}
           />
         </pattern>
 
@@ -149,34 +139,24 @@ export function PitchLayer({
         </pattern>
       </defs>
 
-      <rect
-        x={0}
-        y={0}
-        width={width}
-        height={height}
-        fill={palette.surface}
-        rx={1}
-      />
-      {hasStripes && (
+      {/* Base field with horizontal stripes */}
+      {hasStripes ? (
         <rect
           x={0}
           y={0}
           width={width}
           height={height}
-          fill="url(#pitchStripes)"
-          opacity={0.52}
-          rx={1}
+          fill="url(#pitchHorizontalStripes)"
+          rx={2}
         />
-      )}
-      {pitchStyle === "realistic-grass" && (
+      ) : (
         <rect
           x={0}
           y={0}
           width={width}
           height={height}
-          fill="url(#pitchLight)"
-          opacity={0.95}
-          rx={1}
+          fill={palette.surface}
+          rx={2}
         />
       )}
 
