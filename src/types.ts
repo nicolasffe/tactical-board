@@ -15,10 +15,11 @@ export const PITCH_DIMENSIONS: PitchDimensions = {
   height: 68,
 };
 
-export type PitchView = "full" | "half";
+export type PitchView = "full" | "half" | "left-half" | "right-half";
 export type BoardMode = "match" | "training";
 export type BoardOrientation = "landscape" | "portrait-rotated";
 export type PitchStyle =
+  | "tactical-pad"
   | "realistic-grass"
   | "blueprint"
   | "minimal-light"
@@ -36,7 +37,10 @@ export type EntityKind =
   | "goalkeeper"
   | "ball"
   | "cone"
-  | "mannequin";
+  | "mannequin"
+  | "portableGoal"
+  | "miniGoal"
+  | "hurdle";
 export type DrawTool =
   | "select"
   | "lasso"
@@ -82,7 +86,25 @@ export interface TrainingSettings {
   focus: "half-attacking" | "half-defending" | "full";
   visibleTeams: TeamSide[];
   emphasizeEquipment: boolean;
+  fieldLayout: TrainingFieldLayout;
 }
+
+export type TrainingFieldLayout =
+  | "none"
+  | "vertical-halves"
+  | "horizontal-halves"
+  | "horizontal-thirds"
+  | "horizontal-fourths"
+  | "vertical-thirds"
+  | "vertical-fifths"
+  | "quarters"
+  | "six-zones"
+  | "central-corridor"
+  | "wide-channels"
+  | "attacking-third"
+  | "defensive-third"
+  | "attacking-channels"
+  | "defensive-channels";
 
 export interface BoardSettings {
   mode: BoardMode;
@@ -130,10 +152,13 @@ export interface BenchDragPreview {
   jerseyStyle?: JerseyStyle;
   clientX: number;
   clientY: number;
+  targetPlayerId?: Id;
+  targetPlayerName?: string;
+  fieldDropPoint?: Point;
 }
 
 export interface EquipmentEntity extends TacticalEntityBase {
-  kind: "ball" | "cone" | "mannequin";
+  kind: "ball" | "cone" | "mannequin" | "portableGoal" | "miniGoal" | "hurdle";
 }
 
 export type TacticalEntity = PlayerEntity | EquipmentEntity;

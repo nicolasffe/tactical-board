@@ -32,6 +32,7 @@ import {
 interface BoardCanvasProps {
   svgRef: React.RefObject<SVGSVGElement | null>;
   benchDrag?: BenchDragPreview | null;
+  isExporting?: boolean;
 }
 
 interface DraftLine {
@@ -153,7 +154,10 @@ const isEquipmentEntity = (
 ): entity is EquipmentEntity =>
   entity.kind === "ball" ||
   entity.kind === "cone" ||
-  entity.kind === "mannequin";
+  entity.kind === "mannequin" ||
+  entity.kind === "portableGoal" ||
+  entity.kind === "miniGoal" ||
+  entity.kind === "hurdle";
 
 const toSvgTextAnchor = (
   align: "left" | "center" | "right",
@@ -397,8 +401,182 @@ const renderEntityShape = (
     );
   }
 
+  if (entity.kind === "portableGoal" || entity.kind === "miniGoal") {
+    const isMiniGoal = entity.kind === "miniGoal";
+    const r = entity.radius;
+    const width = r * (isMiniGoal ? 2.75 : 3.25);
+    const height = r * (isMiniGoal ? 1.2 : 1.45);
+    const depth = r * (isMiniGoal ? 0.42 : 0.54);
+    const postStroke = isMiniGoal ? 0.24 : 0.3;
+    const netCell = isMiniGoal ? 0.62 : 0.76;
+    const topY = -height / 2;
+    const bottomY = height / 2;
+    const leftX = -width / 2;
+    const rightX = width / 2;
+    const backLift = depth * 0.42;
+    const backLeftX = leftX + depth;
+    const backRightX = rightX + depth;
+    const backTopY = topY - backLift;
+    const backBottomY = bottomY - depth * 0.24;
+    const netId = `training-goal-net-${entity.id}`;
+    const postGradientId = `training-goal-post-${entity.id}`;
+
+    return (
+      <>
+        <defs>
+          <pattern
+            id={netId}
+            width={netCell}
+            height={netCell}
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d={`M 0 0 L ${netCell} ${netCell} M ${netCell} 0 L 0 ${netCell}`}
+              stroke="rgba(226,232,240,0.72)"
+              strokeWidth={0.08}
+            />
+          </pattern>
+          <linearGradient
+            id={postGradientId}
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="56%" stopColor="#f8fafc" />
+            <stop offset="100%" stopColor="#cbd5e1" />
+          </linearGradient>
+        </defs>
+        <ellipse
+          cx={depth * 0.26}
+          cy={bottomY + r * 0.06}
+          rx={width * 0.48}
+          ry={r * 0.12}
+          fill="rgba(15,23,42,0.14)"
+        />
+        <path
+          d={`M ${leftX} ${topY} L ${backLeftX} ${backTopY} H ${backRightX} L ${rightX} ${topY} V ${bottomY} H ${leftX} Z`}
+          fill={`url(#${netId})`}
+          opacity={0.42}
+        />
+        <path
+          d={`M ${backLeftX} ${backTopY} V ${backBottomY} H ${backRightX} V ${backTopY}`}
+          fill="none"
+          stroke="rgba(226,232,240,0.72)"
+          strokeWidth={postStroke * 0.64}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d={`M ${leftX} ${topY} L ${backLeftX} ${backTopY} H ${backRightX} L ${rightX} ${topY}`}
+          fill="none"
+          stroke="rgba(255,255,255,0.72)"
+          strokeWidth={postStroke * 0.72}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d={`M ${leftX} ${bottomY} V ${topY} H ${rightX} V ${bottomY}`}
+          fill="none"
+          stroke={`url(#${postGradientId})`}
+          strokeWidth={postStroke}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <line
+          x1={leftX}
+          y1={bottomY}
+          x2={rightX}
+          y2={bottomY}
+          stroke="rgba(226,232,240,0.9)"
+          strokeWidth={postStroke * 0.72}
+          strokeLinecap="round"
+        />
+        <path
+          d={`M ${leftX - r * 0.16} ${bottomY} H ${
+            leftX + r * 0.44
+          } M ${rightX - r * 0.44} ${bottomY} H ${rightX + r * 0.16}`}
+          fill="none"
+          stroke="rgba(203,213,225,0.9)"
+          strokeWidth={postStroke * 0.58}
+          strokeLinecap="round"
+        />
+      </>
+    );
+  }
+
+  if (entity.kind === "hurdle") {
+    const r = entity.radius;
+    const width = r * 3.25;
+    const height = r * 1.65;
+    const netId = `hurdle-net-${entity.id}`;
+
+    return (
+      <>
+        <defs>
+          <pattern
+            id={netId}
+            width="1.15"
+            height="1.15"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M 0 0 L 1.15 1.15 M 1.15 0 L 0 1.15"
+              stroke="rgba(255,255,255,0.54)"
+              strokeWidth={0.12}
+            />
+          </pattern>
+        </defs>
+        <ellipse
+          cx={0}
+          cy={height * 0.76}
+          rx={width * 0.5}
+          ry={r * 0.18}
+          fill="rgba(15,23,42,0.16)"
+        />
+        <rect
+          x={-width / 2}
+          y={-height * 0.45}
+          width={width}
+          height={height}
+          rx={0.38}
+          fill={`url(#${netId})`}
+          opacity={0.52}
+        />
+        <path
+          d={`M ${-width / 2} ${height * 0.55} V ${
+            -height * 0.45
+          } H ${width / 2} V ${height * 0.55}`}
+          fill="none"
+          stroke="#f8fafc"
+          strokeWidth={0.42}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <line
+          x1={-width * 0.44}
+          y1={height * 0.58}
+          x2={-width * 0.26}
+          y2={height * 0.78}
+          stroke="#e2e8f0"
+          strokeWidth={0.32}
+          strokeLinecap="round"
+        />
+        <line
+          x1={width * 0.44}
+          y1={height * 0.58}
+          x2={width * 0.26}
+          y2={height * 0.78}
+          stroke="#e2e8f0"
+          strokeWidth={0.32}
+          strokeLinecap="round"
+        />
+      </>
+    );
+  }
+
   const jerseyPatternId = `jersey-pattern-${entity.id}`;
-  const avatarClipId = `avatar-clip-${entity.id}`;
   const jerseyStyle = isPlayerEntity(entity)
     ? (entity.jerseyStyle ?? "solid")
     : "solid";
@@ -456,25 +634,6 @@ const renderEntityShape = (
           stroke={stroke}
           strokeWidth={strokeWidth}
         />
-      )}
-      {isPlayerEntity(entity) && entity.avatarUrl && (
-        <>
-          <defs>
-            <clipPath id={avatarClipId}>
-              <circle cx={0} cy={0} r={entity.radius * 0.58} />
-            </clipPath>
-          </defs>
-          <image
-            href={entity.avatarUrl}
-            x={-entity.radius * 0.58}
-            y={-entity.radius * 0.58}
-            width={entity.radius * 1.16}
-            height={entity.radius * 1.16}
-            preserveAspectRatio="xMidYMid slice"
-            clipPath={`url(#${avatarClipId})`}
-            className="pointer-events-none"
-          />
-        </>
       )}
       <text
         textAnchor="middle"
@@ -538,7 +697,89 @@ function CanvasActionButton({
   );
 }
 
-export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
+interface TacticalPadFrame {
+  insetX: number;
+  insetY: number;
+  innerWidth: number;
+  innerHeight: number;
+  scaleX: number;
+  scaleY: number;
+}
+
+const getTacticalPadFrame = (
+  dimensions: PitchDimensions,
+): TacticalPadFrame => {
+  const insetX = dimensions.width * 0.043;
+  const insetY = dimensions.height * 0.055;
+  const innerWidth = Math.max(1, dimensions.width - insetX * 2);
+  const innerHeight = Math.max(1, dimensions.height - insetY * 2);
+
+  return {
+    insetX,
+    insetY,
+    innerWidth,
+    innerHeight,
+    scaleX: innerWidth / dimensions.width,
+    scaleY: innerHeight / dimensions.height,
+  };
+};
+
+function TacticalPadChrome({
+  dimensions,
+  frame,
+}: {
+  dimensions: PitchDimensions;
+  frame: TacticalPadFrame;
+}) {
+  const bezelInset = Math.min(dimensions.width, dimensions.height) * 0.012;
+  const bezelRadius = Math.min(dimensions.width, dimensions.height) * 0.058;
+  const innerLip = Math.min(dimensions.width, dimensions.height) * 0.01;
+
+  return (
+    <g pointerEvents="none">
+      <rect
+        x={0}
+        y={0}
+        width={dimensions.width}
+        height={dimensions.height}
+        fill="#d7d5d1"
+      />
+      <rect
+        x={bezelInset}
+        y={bezelInset}
+        width={dimensions.width - bezelInset * 2}
+        height={dimensions.height - bezelInset * 2}
+        rx={bezelRadius}
+        fill="#2c3335"
+      />
+      <rect
+        x={bezelInset * 1.9}
+        y={bezelInset * 1.9}
+        width={dimensions.width - bezelInset * 3.8}
+        height={dimensions.height - bezelInset * 3.8}
+        rx={Math.max(0.8, bezelRadius * 0.72)}
+        fill="#31393b"
+        stroke="rgba(255,255,255,0.05)"
+        strokeWidth={0.18}
+      />
+      <rect
+        x={frame.insetX - innerLip}
+        y={frame.insetY - innerLip}
+        width={frame.innerWidth + innerLip * 2}
+        height={frame.innerHeight + innerLip * 2}
+        rx={0.7}
+        fill="#1f2729"
+        opacity={0.72}
+      />
+    </g>
+  );
+}
+
+export function BoardCanvas({
+  svgRef,
+  benchDrag,
+  isExporting = false,
+}: BoardCanvasProps) {
   const boardLayerRef = useRef<SVGGElement | null>(null);
   const settings = useTacticalBoardStore((state) => state.settings);
   const entities = useTacticalBoardStore((state) => state.entities);
@@ -605,30 +846,55 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
   const readableTextTransform = isPortraitRotated
     ? "scale(-1 1) rotate(-90)"
     : undefined;
+  const pitchWindow = useMemo(
+    () => getPitchViewBox(settings.pitchView, pitchDimensions),
+    [pitchDimensions, settings.pitchView],
+  );
+  const displayDimensions = useMemo<PitchDimensions>(
+    () => ({
+      width: pitchWindow.width,
+      height: pitchWindow.height,
+    }),
+    [pitchWindow.height, pitchWindow.width],
+  );
   const viewBox = useMemo(() => {
     if (isPortraitRotated) {
       return {
         x: 0,
         y: 0,
-        width: pitchDimensions.height,
-        height: pitchDimensions.width,
+        width: displayDimensions.height,
+        height: displayDimensions.width,
       };
     }
 
-    if (settings.mode === "training") {
-      return {
-        x: 0,
-        y: 0,
-        width: pitchDimensions.width,
-        height: pitchDimensions.height,
-      };
-    }
-
-    return getPitchViewBox(settings.pitchView, pitchDimensions);
-  }, [isPortraitRotated, pitchDimensions, settings.mode, settings.pitchView]);
+    return {
+      x: 0,
+      y: 0,
+      width: displayDimensions.width,
+      height: displayDimensions.height,
+    };
+  }, [displayDimensions.height, displayDimensions.width, isPortraitRotated]);
   const boardTransform = isPortraitRotated
-    ? `translate(${pitchDimensions.height} ${pitchDimensions.width}) rotate(90) scale(-1 1)`
+    ? `translate(${displayDimensions.height} ${displayDimensions.width}) rotate(90) scale(-1 1)`
     : undefined;
+  const tacticalPadFrame =
+    settings.pitchStyle === "tactical-pad"
+      ? getTacticalPadFrame(displayDimensions)
+      : null;
+  const preserveAspectRatio =
+    settings.pitchView === "full" ? "none" : "xMidYMid meet";
+  const sourceWindowTransform =
+    pitchWindow.x !== 0 || pitchWindow.y !== 0
+      ? `translate(${-pitchWindow.x} ${-pitchWindow.y})`
+      : undefined;
+  const boardContentTransform = [
+    tacticalPadFrame
+      ? `translate(${tacticalPadFrame.insetX} ${tacticalPadFrame.insetY}) scale(${tacticalPadFrame.scaleX} ${tacticalPadFrame.scaleY})`
+      : null,
+    sourceWindowTransform,
+  ]
+    .filter(Boolean)
+    .join(" ") || undefined;
   const entityEntries = useMemo(() => Object.values(entities), [entities]);
   const filteredEntityEntries = useMemo(() => {
     if (settings.mode !== "training") {
@@ -1359,15 +1625,16 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
   const getRenderedEntityRotation = (entity: TacticalEntity): number =>
     renderable.rotations[entity.id] ?? entity.rotation ?? 0;
 
-  const selectedLine =
-    renderable.overlays?.lines?.find(
-      (line) => line.id === selection.activeOverlayId,
-    ) ?? null;
+  const selectedLine = isExporting
+    ? null
+    : renderable.overlays?.lines?.find(
+        (line) => line.id === selection.activeOverlayId,
+      ) ?? null;
   const renderedSelectedLine =
     selectedLine && draggingLine?.lineId === selectedLine.id
       ? buildDraggedLine(draggingLine)
       : selectedLine;
-  const selectedEntity = selection.activeEntityId
+  const selectedEntity = !isExporting && selection.activeEntityId
     ? entities[selection.activeEntityId]
     : null;
   const selectedEquipment =
@@ -1381,10 +1648,11 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
   const selectedEquipmentPosition = selectedEquipmentVisible
     ? getRenderedEntityPosition(selectedEquipmentVisible)
     : null;
-  const selectedText =
-    renderable.overlays?.texts?.find(
-      (textItem) => textItem.id === selection.activeOverlayId,
-    ) ?? null;
+  const selectedText = isExporting
+    ? null
+    : renderable.overlays?.texts?.find(
+        (textItem) => textItem.id === selection.activeOverlayId,
+      ) ?? null;
   const selectedTextPosition =
     selectedText && draggingTextId === selectedText.id && dragTextPoint
       ? dragTextPoint
@@ -1436,12 +1704,12 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
       <svg
         ref={svgRef}
         viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-        preserveAspectRatio="none"
+        preserveAspectRatio={preserveAspectRatio}
         className="block h-full w-full touch-none select-none"
-        onPointerDown={handleBoardPointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        onPointerDown={isExporting ? undefined : handleBoardPointerDown}
+        onPointerMove={isExporting ? undefined : handlePointerMove}
+        onPointerUp={isExporting ? undefined : handlePointerUp}
+        onPointerCancel={isExporting ? undefined : handlePointerUp}
       >
         <defs>
           <marker
@@ -1454,20 +1722,43 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
           >
             <path d="M0,0 L5,2.5 L0,5 Z" fill="context-stroke" />
           </marker>
+          <clipPath id="motus-board-window-clip">
+            <rect
+              x={0}
+              y={0}
+              width={displayDimensions.width}
+              height={displayDimensions.height}
+            />
+          </clipPath>
         </defs>
 
-        <g
-          ref={boardLayerRef}
-          transform={boardTransform}
-          style={{ userSelect: "none", WebkitUserSelect: "none" }}
-        >
-          <PitchLayer
-            dimensions={pitchDimensions}
-            showGrid={settings.showGrid}
-            showZones={settings.showZones}
-            pitchStyle={settings.pitchStyle}
-            theme={settings.theme}
-          />
+        <g transform={boardTransform}>
+          <g clipPath="url(#motus-board-window-clip)">
+            {tacticalPadFrame && (
+              <TacticalPadChrome
+                dimensions={displayDimensions}
+                frame={tacticalPadFrame}
+              />
+            )}
+
+            <g
+              ref={boardLayerRef}
+              data-board-drop-area="true"
+              transform={boardContentTransform}
+              style={{ userSelect: "none", WebkitUserSelect: "none" }}
+            >
+              <PitchLayer
+                dimensions={pitchDimensions}
+                showGrid={settings.showGrid}
+                showZones={settings.showZones}
+                trainingFieldLayout={
+                  settings.mode === "training"
+                    ? settings.training.fieldLayout
+                    : "none"
+                }
+                pitchStyle={settings.pitchStyle}
+                theme={settings.theme}
+              />
 
           <g>
             {(renderable.overlays?.polygons ?? []).map((polygon) => {
@@ -1538,7 +1829,8 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                 renderable.positions,
                 entities,
               );
-              const isSelected = selection.activeOverlayId === line.id;
+              const isSelected =
+                !isExporting && selection.activeOverlayId === line.id;
               const path =
                 renderedLine.type === "dribble"
                   ? buildWavyPath(start, renderedLine, end)
@@ -1594,7 +1886,7 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
             })}
           </g>
 
-          {draftLine &&
+          {!isExporting && draftLine &&
             (() => {
               const start = resolveAnchor(
                 draftLine.start,
@@ -1650,7 +1942,7 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
               );
             })()}
 
-          {freehandPoints && freehandPoints.length > 1 && (
+          {!isExporting && freehandPoints && freehandPoints.length > 1 && (
             <polyline
               points={freehandPoints
                 .map((point) => `${point.x},${point.y}`)
@@ -1664,7 +1956,7 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
             />
           )}
 
-          {draftPolygon &&
+          {!isExporting && draftPolygon &&
             (() => {
               const bounds = getRectBounds(
                 draftPolygon.start,
@@ -1696,6 +1988,8 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                   draggingTextId === textItem.id && dragTextPoint
                     ? dragTextPoint
                     : textItem.position;
+                const isEditingThisText =
+                  !isExporting && editingTextId === textItem.id;
 
                 return (
                   <g
@@ -1723,13 +2017,12 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                         fill={textItem.color}
                         fontWeight={600}
                         style={{
-                          display:
-                            editingTextId === textItem.id ? "none" : "inline",
+                          display: isEditingThisText ? "none" : "inline",
                         }}
                       >
                         {textItem.text}
                       </text>
-                      {editingTextId === textItem.id && (
+                      {isEditingThisText && (
                         <foreignObject
                           x={-0.5}
                           y={-2}
@@ -1778,7 +2071,7 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
             )}
           </g>
 
-          {lassoRect &&
+          {!isExporting && lassoRect &&
             (() => {
               const bounds = getRectBounds(lassoRect.start, lassoRect.end);
               return (
@@ -1802,9 +2095,10 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                 const position = getRenderedEntityPosition(entity);
                 const rotation = getRenderedEntityRotation(entity);
                 const isSelected =
-                  selection.activeEntityId === entity.id ||
-                  selection.entityIds.includes(entity.id);
-                const isHovered = hoveredEntityId === entity.id;
+                  !isExporting &&
+                  (selection.activeEntityId === entity.id ||
+                    selection.entityIds.includes(entity.id));
+                const isHovered = !isExporting && hoveredEntityId === entity.id;
                 const showName =
                   settings.showPlayerNames ||
                   (entity.kind === "player" || entity.kind === "goalkeeper"
@@ -1823,9 +2117,26 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                     ? entity.name
                     : entity.label;
                 const isBenchDragTargetCandidate =
+                  !isExporting &&
                   draggedBenchPlayer !== null &&
                   isPlayerEntity(entity) &&
                   entity.team === draggedBenchPlayer.team;
+                const isSubstitutionHoveredTarget =
+                  !isExporting &&
+                  benchDrag?.targetPlayerId === entity.id;
+                const interactionRadius = Math.max(
+                  entity.radius *
+                    (isSubstitutionHoveredTarget
+                      ? 2.9
+                      : isBenchDragTargetCandidate && isPlayerEntity(entity)
+                        ? 2.45
+                        : 1.45),
+                  isSubstitutionHoveredTarget
+                    ? 6
+                    : isBenchDragTargetCandidate
+                      ? 4.9
+                      : 3,
+                );
 
                 return (
                   <g
@@ -1839,6 +2150,13 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                     data-player-drop-id={
                       isPlayerEntity(entity) ? entity.id : undefined
                     }
+                    data-substitution-target-state={
+                      isSubstitutionHoveredTarget
+                        ? "active"
+                        : isBenchDragTargetCandidate
+                          ? "candidate"
+                          : undefined
+                    }
                     onPointerDown={(event) =>
                       handleEntityPointerDown(event, entity.id)
                     }
@@ -1850,33 +2168,42 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                     }
                   >
                     <circle
-                      r={Math.max(entity.radius * 1.45, 3)}
+                      r={interactionRadius}
                       fill="transparent"
                     />
 
                     {(isSelected || isHovered || isBenchDragTargetCandidate) && (
                       <circle
                         r={Math.max(
-                          entity.radius * (isBenchDragTargetCandidate ? 1.55 : 1.35),
+                          entity.radius *
+                            (isSubstitutionHoveredTarget
+                              ? 2.05
+                              : isBenchDragTargetCandidate
+                                ? 1.62
+                                : 1.35),
                           3,
                         )}
                         fill={
                           isSelected
                             ? "rgba(14,165,233,0.18)"
-                            : isBenchDragTargetCandidate
-                              ? "rgba(245,158,11,0.12)"
-                            : "rgba(255,255,255,0.12)"
+                            : isSubstitutionHoveredTarget
+                              ? "rgba(16,185,129,0.24)"
+                              : isBenchDragTargetCandidate
+                                ? "rgba(245,158,11,0.12)"
+                              : "rgba(255,255,255,0.12)"
                         }
                         stroke={
                           isSelected
                             ? "rgba(14,165,233,0.95)"
-                            : isBenchDragTargetCandidate
-                              ? "rgba(245,158,11,0.88)"
-                            : "rgba(255,255,255,0.5)"
+                            : isSubstitutionHoveredTarget
+                              ? "rgba(16,185,129,0.96)"
+                              : isBenchDragTargetCandidate
+                                ? "rgba(245,158,11,0.88)"
+                              : "rgba(255,255,255,0.5)"
                         }
-                        strokeWidth={0.24}
+                        strokeWidth={isSubstitutionHoveredTarget ? 0.36 : 0.24}
                         strokeDasharray={
-                          isBenchDragTargetCandidate
+                          isBenchDragTargetCandidate && !isSubstitutionHoveredTarget
                             ? "1.2 0.9"
                             : undefined
                         }
@@ -1884,9 +2211,53 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                       />
                     )}
 
+                    {isSubstitutionHoveredTarget && (
+                      <circle
+                        r={Math.max(entity.radius * 2.45, 4.9)}
+                        fill="none"
+                        stroke="rgba(16,185,129,0.34)"
+                        strokeWidth={0.18}
+                        className="pointer-events-none"
+                      />
+                    )}
+
                     <g transform={entityTransform || undefined}>
                       {renderEntityShape(entity, readableTextTransform)}
                     </g>
+
+                    {isSubstitutionHoveredTarget && (
+                      <g
+                        transform={`translate(0 ${-Math.max(
+                          entity.radius + 2.6,
+                          4.1,
+                        )})`}
+                        className="pointer-events-none"
+                      >
+                        <g transform={readableTextTransform}>
+                          <rect
+                            x={-4.9}
+                            y={-1.25}
+                            width={9.8}
+                            height={2.35}
+                            rx={0.75}
+                            fill="rgba(15,23,42,0.88)"
+                            stroke="rgba(255,255,255,0.72)"
+                            strokeWidth={0.12}
+                          />
+                          <text
+                            x={0}
+                            y={-0.02}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize={0.92}
+                            fill="#ffffff"
+                            fontWeight={700}
+                          >
+                            Soltar aqui
+                          </text>
+                        </g>
+                      </g>
+                    )}
 
                     {showName && (
                       <g
@@ -1916,6 +2287,57 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
                 );
               })}
           </g>
+
+          {!isExporting &&
+            benchDrag?.fieldDropPoint &&
+            draggedBenchPlayer &&
+            !benchDrag.targetPlayerId && (
+              <g
+                transform={`translate(${benchDrag.fieldDropPoint.x} ${benchDrag.fieldDropPoint.y})`}
+                className="pointer-events-none"
+              >
+                <circle
+                  r={Math.max(draggedBenchPlayer.radius * 2.1, 4.2)}
+                  fill="rgba(16,185,129,0.16)"
+                  stroke="rgba(16,185,129,0.86)"
+                  strokeWidth={0.28}
+                  strokeDasharray="1.3 0.9"
+                />
+                <g opacity={0.88}>
+                  {renderEntityShape(draggedBenchPlayer, readableTextTransform)}
+                </g>
+                <g
+                  transform={`translate(0 ${Math.max(
+                    draggedBenchPlayer.radius + 2.4,
+                    4,
+                  )})`}
+                >
+                  <g transform={readableTextTransform}>
+                    <rect
+                      x={-5.05}
+                      y={-1.15}
+                      width={10.1}
+                      height={2.25}
+                      rx={0.75}
+                      fill="rgba(15,23,42,0.88)"
+                      stroke="rgba(255,255,255,0.7)"
+                      strokeWidth={0.12}
+                    />
+                    <text
+                      x={0}
+                      y={-0.02}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fontSize={0.9}
+                      fill="#ffffff"
+                      fontWeight={700}
+                    >
+                      Entrar aqui
+                    </text>
+                  </g>
+                </g>
+              </g>
+            )}
 
           {selectedEquipmentVisible &&
             selectedEquipmentPosition &&
@@ -2042,6 +2464,8 @@ export function BoardCanvas({ svgRef, benchDrag }: BoardCanvasProps) {
               />
             </g>
           )}
+          </g>
+          </g>
         </g>
       </svg>
     </div>

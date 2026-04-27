@@ -19,6 +19,7 @@ import type {
   TacticalEntity,
   TeamSide,
 } from "@/src/types";
+import { OptionField } from "./OptionField";
 
 interface PlayerEditorPanelProps {
   onClose?: () => void;
@@ -29,10 +30,10 @@ const isPlayerEntity = (entity: TacticalEntity): entity is PlayerEntity =>
   entity.kind === "player" || entity.kind === "goalkeeper";
 
 const inputClass =
-  "h-10 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-800 shadow-sm outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100 sm:text-xs";
+  "h-11 w-full min-w-0 rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] px-3 text-[11px] font-medium text-slate-800 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] outline-none transition placeholder:text-slate-400 focus:border-sky-300 focus:ring-2 focus:ring-sky-100 sm:text-xs";
 
 const cardClass =
-  "max-h-[min(calc(100svh-6rem),46rem)] w-[min(calc(100vw-1rem),440px)] overflow-y-auto rounded-[24px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(248,250,252,0.88))] p-3 shadow-[0_28px_72px_-36px_rgba(15,23,42,0.42)] ring-1 ring-slate-200/60 backdrop-blur-2xl sm:max-h-[calc(100svh-2rem)] sm:rounded-[28px] sm:p-4";
+  "max-h-[min(calc(100svh-6rem),46rem)] w-[min(calc(100vw-1rem),440px)] overflow-y-auto rounded-[26px] border border-white/80 bg-[linear-gradient(160deg,rgba(255,255,255,0.97),rgba(241,245,249,0.9))] p-3 shadow-[0_36px_90px_-42px_rgba(15,23,42,0.52)] ring-1 ring-slate-200/70 backdrop-blur-2xl sm:max-h-[calc(100svh-2rem)] sm:rounded-[30px] sm:p-4";
 
 const MAX_PLAYERS_ON_PITCH = 11;
 
@@ -48,6 +49,12 @@ const getTeamTone = (team: TeamSide) =>
         badge: "bg-amber-500 text-white",
         accent: "text-amber-700",
       };
+
+const jerseyStyleOptions: Array<{ value: JerseyStyle; label: string }> = [
+  { value: "solid", label: "Camisa lisa" },
+  { value: "striped", label: "Listrada" },
+  { value: "bordered", label: "Com borda" },
+];
 
 export function PlayerEditorPanel({
   onClose,
@@ -208,7 +215,7 @@ export function PlayerEditorPanel({
           {onClose ? (
             <button
               type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-600 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
               onClick={onClose}
               aria-label="Fechar painel"
             >
@@ -242,7 +249,7 @@ export function PlayerEditorPanel({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-600 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
             onClick={() =>
               setBoardSettings({
                 showPlayerNames: !settings.showPlayerNames,
@@ -256,7 +263,7 @@ export function PlayerEditorPanel({
           {onClose ? (
             <button
               type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-600 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
               onClick={onClose}
               aria-label="Fechar painel"
             >
@@ -266,7 +273,7 @@ export function PlayerEditorPanel({
         </div>
       </header>
 
-      <div className="mt-4 flex items-center gap-2 rounded-[22px] border border-slate-200 bg-slate-50 p-1 shadow-sm">
+      <div className="mt-4 flex items-center gap-2 rounded-[22px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(241,245,249,0.86))] p-1 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.24)]">
         <TeamTabButton
           label={`Casa ${teamSummary.home.onPitch}/${teamSummary.home.total}`}
           active={teamFilter === "home"}
@@ -297,10 +304,10 @@ export function PlayerEditorPanel({
                   key={player.id}
                   type="button"
                   onClick={() => selectPlayer(player.id)}
-                  className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl border px-2 text-xs font-semibold shadow-sm transition ${
+                  className={`inline-flex h-10 min-w-10 items-center justify-center rounded-[16px] border px-2 text-xs font-semibold shadow-[0_16px_32px_-28px_rgba(15,23,42,0.26)] transition hover:-translate-y-0.5 ${
                     isActive
-                      ? `${tone.soft}`
-                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                      ? `${tone.soft} bg-[linear-gradient(135deg,rgba(255,255,255,0.86),rgba(255,255,255,0.62))]`
+                      : "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-600 hover:border-slate-300 hover:bg-white"
                   }`}
                   title={player.name}
                 >
@@ -319,7 +326,9 @@ export function PlayerEditorPanel({
         </NavButton>
       </div>
 
-      <section className={`mt-3 rounded-[24px] border p-3 ${tone.soft}`}>
+      <section
+        className={`mt-3 rounded-[24px] border bg-[linear-gradient(135deg,rgba(255,255,255,0.7),rgba(255,255,255,0.4))] p-3 shadow-[0_20px_40px_-30px_rgba(15,23,42,0.28)] ${tone.soft}`}
+      >
         <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
           <span
             className={`inline-flex h-12 w-12 items-center justify-center rounded-[18px] text-base font-bold shadow-sm ${tone.badge}`}
@@ -385,23 +394,20 @@ export function PlayerEditorPanel({
           />
         </div>
 
-        <select
-          className={inputClass}
+        <OptionField
+          icon={Shirt}
+          options={jerseyStyleOptions}
           value={selectedPlayer.jerseyStyle ?? "solid"}
           title={`Estilo da camisa de ${selectedPlayer.name}`}
-          onChange={(event) =>
+          onChange={(nextValue) =>
             updateEntity(selectedPlayer.id, {
-              jerseyStyle: event.target.value as JerseyStyle,
+              jerseyStyle: nextValue as JerseyStyle,
             })
           }
-        >
-          <option value="solid">Camisa lisa</option>
-          <option value="striped">Listrada</option>
-          <option value="bordered">Com borda</option>
-        </select>
+        />
 
         <label
-          className="inline-flex h-10 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:text-xs"
+          className="inline-flex h-11 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] px-3 text-[11px] font-semibold text-slate-700 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white sm:text-xs"
           title={`Cor de ${selectedPlayer.name}`}
         >
           <Palette size={14} />
@@ -418,10 +424,10 @@ export function PlayerEditorPanel({
 
         <button
           type="button"
-          className={`h-10 min-w-0 rounded-2xl border px-3 text-[11px] font-semibold transition sm:text-xs ${
+          className={`h-11 min-w-0 rounded-[18px] border px-3 text-[11px] font-semibold shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 sm:text-xs ${
             selectedPlayer.isStarter === false
-              ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-              : `${tone.soft}`
+              ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-700 hover:border-slate-300 hover:bg-white"
+              : `${tone.soft} bg-[linear-gradient(135deg,rgba(255,255,255,0.72),rgba(255,255,255,0.38))]`
           }`}
           onClick={() =>
             updateEntity(selectedPlayer.id, {
@@ -434,11 +440,11 @@ export function PlayerEditorPanel({
 
         <button
           type="button"
-          className={`h-10 min-w-0 rounded-2xl border px-3 text-[11px] font-semibold transition sm:text-xs ${
+          className={`h-11 min-w-0 rounded-[18px] border px-3 text-[11px] font-semibold shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 sm:text-xs ${
             isOnPitch
-              ? "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+              ? "border-amber-200 bg-[linear-gradient(135deg,rgba(255,247,237,0.96),rgba(254,243,199,0.88))] text-amber-800 hover:border-amber-300"
               : canEnterPitch
-                ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                ? "border-emerald-200 bg-[linear-gradient(135deg,rgba(236,253,245,0.96),rgba(209,250,229,0.88))] text-emerald-800 hover:border-emerald-300"
                 : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
           }`}
           disabled={!isOnPitch && !canEnterPitch}
@@ -469,7 +475,7 @@ function NavButton({ title, onClick, children }: NavButtonProps) {
   return (
     <button
       type="button"
-      className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-600 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
       onClick={onClick}
       title={title}
       aria-label={title}
@@ -490,9 +496,9 @@ function TeamTabButton({ label, active, onClick }: TeamTabButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 truncate rounded-[18px] px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${
+      className={`flex-1 truncate rounded-[18px] px-3 py-2.5 text-[11px] font-semibold transition sm:text-xs ${
         active
-          ? "bg-white text-slate-900 shadow-sm"
+          ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.92))] text-slate-900 shadow-[0_16px_32px_-28px_rgba(15,23,42,0.28)]"
           : "text-slate-500 hover:text-slate-700"
       }`}
     >

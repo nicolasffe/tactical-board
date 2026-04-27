@@ -1,0 +1,403 @@
+"use client";
+
+import type { FormationPreset, JerseyStyle, TeamSide } from "./types";
+
+type MockPlayerRole = "goalkeeper" | "player";
+
+export interface MockPlayerRecord {
+  id: string;
+  fullName: string;
+  shirtNumber: number;
+  role: MockPlayerRole;
+  squad: string;
+  avatarUrl?: string;
+  jerseyStyle?: JerseyStyle;
+}
+
+export interface MockSquadSeed {
+  id: string;
+  displayName: string;
+  team: TeamSide;
+  formation: FormationPreset;
+  color: string;
+  starterIds: string[];
+  benchIds: string[];
+}
+
+const MOCK_PLAYER_ROWS: MockPlayerRecord[] = [
+  {
+    id: "alisson",
+    fullName: "Alisson Becker",
+    shirtNumber: 1,
+    role: "goalkeeper",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=12",
+    jerseyStyle: "bordered",
+  },
+  {
+    id: "arana",
+    fullName: "Guilherme Arana",
+    shirtNumber: 6,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=13",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "gabriel-magalhaes",
+    fullName: "Gabriel Magalhaes",
+    shirtNumber: 3,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=14",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "marquinhos",
+    fullName: "Marquinhos",
+    shirtNumber: 4,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=15",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "danilo",
+    fullName: "Danilo",
+    shirtNumber: 2,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=16",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "bruno-guimaraes",
+    fullName: "Bruno Guimaraes",
+    shirtNumber: 8,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=17",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "casemiro",
+    fullName: "Casemiro",
+    shirtNumber: 5,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=18",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "lucas-paqueta",
+    fullName: "Lucas Paqueta",
+    shirtNumber: 7,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=19",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "vinicius-junior",
+    fullName: "Vinicius Junior",
+    shirtNumber: 10,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=20",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "rodrygo",
+    fullName: "Rodrygo",
+    shirtNumber: 11,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=21",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "raphinha",
+    fullName: "Raphinha",
+    shirtNumber: 17,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=22",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "bento",
+    fullName: "Bento",
+    shirtNumber: 12,
+    role: "goalkeeper",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=23",
+    jerseyStyle: "bordered",
+  },
+  {
+    id: "bremer",
+    fullName: "Bremer",
+    shirtNumber: 13,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=24",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "gabriel-martinelli",
+    fullName: "Gabriel Martinelli",
+    shirtNumber: 14,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=25",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "andre",
+    fullName: "Andre",
+    shirtNumber: 15,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=26",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "savinho",
+    fullName: "Savinho",
+    shirtNumber: 18,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=27",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "endrick",
+    fullName: "Endrick",
+    shirtNumber: 20,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=28",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "beraldo",
+    fullName: "Beraldo",
+    shirtNumber: 21,
+    role: "player",
+    squad: "Brazil",
+    avatarUrl: "https://i.pravatar.cc/160?img=29",
+    jerseyStyle: "striped",
+  },
+  {
+    id: "emi-martinez",
+    fullName: "Emiliano Martinez",
+    shirtNumber: 23,
+    role: "goalkeeper",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=30",
+    jerseyStyle: "bordered",
+  },
+  {
+    id: "tagliafico",
+    fullName: "Nicolas Tagliafico",
+    shirtNumber: 3,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=31",
+  },
+  {
+    id: "lisandro-martinez",
+    fullName: "Lisandro Martinez",
+    shirtNumber: 25,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=32",
+  },
+  {
+    id: "romero",
+    fullName: "Cristian Romero",
+    shirtNumber: 13,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=33",
+  },
+  {
+    id: "molina",
+    fullName: "Nahuel Molina",
+    shirtNumber: 26,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=34",
+  },
+  {
+    id: "nico-gonzalez",
+    fullName: "Nico Gonzalez",
+    shirtNumber: 15,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=35",
+  },
+  {
+    id: "enzo-fernandez",
+    fullName: "Enzo Fernandez",
+    shirtNumber: 8,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=36",
+  },
+  {
+    id: "de-paul",
+    fullName: "Rodrigo De Paul",
+    shirtNumber: 7,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=37",
+  },
+  {
+    id: "messi",
+    fullName: "Lionel Messi",
+    shirtNumber: 10,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=38",
+  },
+  {
+    id: "julian-alvarez",
+    fullName: "Julian Alvarez",
+    shirtNumber: 9,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=39",
+  },
+  {
+    id: "lautaro-martinez",
+    fullName: "Lautaro Martinez",
+    shirtNumber: 22,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=40",
+  },
+  {
+    id: "rulli",
+    fullName: "Geronimo Rulli",
+    shirtNumber: 12,
+    role: "goalkeeper",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=41",
+    jerseyStyle: "bordered",
+  },
+  {
+    id: "otamendi",
+    fullName: "Nicolas Otamendi",
+    shirtNumber: 19,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=42",
+  },
+  {
+    id: "paredes",
+    fullName: "Leandro Paredes",
+    shirtNumber: 5,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=43",
+  },
+  {
+    id: "mac-allister",
+    fullName: "Alexis Mac Allister",
+    shirtNumber: 20,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=44",
+  },
+  {
+    id: "lo-celso",
+    fullName: "Giovani Lo Celso",
+    shirtNumber: 16,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=45",
+  },
+  {
+    id: "garnacho",
+    fullName: "Alejandro Garnacho",
+    shirtNumber: 17,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=46",
+  },
+  {
+    id: "angel-correa",
+    fullName: "Angel Correa",
+    shirtNumber: 18,
+    role: "player",
+    squad: "Argentina",
+    avatarUrl: "https://i.pravatar.cc/160?img=47",
+  },
+];
+
+export const MOCK_PLAYER_DATABASE: Record<string, MockPlayerRecord> =
+  Object.fromEntries(MOCK_PLAYER_ROWS.map((player) => [player.id, player]));
+
+export const MOCK_MATCH_DATABASE: Record<TeamSide, MockSquadSeed> = {
+  home: {
+    id: "brazil-home-seed",
+    displayName: "Brazil",
+    team: "home",
+    formation: "4-3-3",
+    color: "#16a34a",
+    starterIds: [
+      "alisson",
+      "arana",
+      "gabriel-magalhaes",
+      "marquinhos",
+      "danilo",
+      "bruno-guimaraes",
+      "casemiro",
+      "lucas-paqueta",
+      "vinicius-junior",
+      "rodrygo",
+      "raphinha",
+    ],
+    benchIds: [
+      "bento",
+      "bremer",
+      "gabriel-martinelli",
+      "andre",
+      "savinho",
+      "endrick",
+      "beraldo",
+    ],
+  },
+  away: {
+    id: "argentina-away-seed",
+    displayName: "Argentina",
+    team: "away",
+    formation: "4-4-2",
+    color: "#38bdf8",
+    starterIds: [
+      "emi-martinez",
+      "tagliafico",
+      "lisandro-martinez",
+      "romero",
+      "molina",
+      "nico-gonzalez",
+      "enzo-fernandez",
+      "de-paul",
+      "messi",
+      "julian-alvarez",
+      "lautaro-martinez",
+    ],
+    benchIds: [
+      "rulli",
+      "otamendi",
+      "paredes",
+      "mac-allister",
+      "lo-celso",
+      "garnacho",
+      "angel-correa",
+    ],
+  },
+};
+
+export const getMockPlayerById = (playerId: string) =>
+  MOCK_PLAYER_DATABASE[playerId];

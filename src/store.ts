@@ -16,6 +16,7 @@ import type {
   BoardSettings,
   ControlPointKey,
   DrawTool,
+  EquipmentEntity,
   FrameOverlays,
   FormationPreset,
   FrameEntityState,
@@ -35,6 +36,11 @@ import type {
   TimelineFrame,
 } from "./types";
 import { FORMATION_PRESETS, PITCH_DIMENSIONS } from "./types";
+import {
+  getMockPlayerById,
+  MOCK_MATCH_DATABASE,
+  type MockPlayerRecord,
+} from "./mockPlayerDatabase";
 import { PITCH_PRESET_DIMENSIONS } from "./types";
 
 const HISTORY_LIMIT = 100;
@@ -45,10 +51,22 @@ const LINE_COLORS: Record<TacticalLine["type"], string> = {
   dribble: "#f59e0b",
 };
 
+const EQUIPMENT_DEFAULTS: Record<
+  EquipmentEntity["kind"],
+  { label: string; color: string; radius: number }
+> = {
+  ball: { label: "Bola", color: "#f8fafc", radius: 1.2 },
+  cone: { label: "Cone", color: "#fb923c", radius: 1.4 },
+  mannequin: { label: "Manequim", color: "#d9f99d", radius: 1.8 },
+  portableGoal: { label: "Gol", color: "#f8fafc", radius: 1.95 },
+  miniGoal: { label: "Mini gol", color: "#f8fafc", radius: 1.25 },
+  hurdle: { label: "Barreira", color: "#e2e8f0", radius: 1.55 },
+};
+
 const DEFAULT_SETTINGS: BoardSettings = {
   mode: "match",
   orientation: "landscape",
-  pitchStyle: "realistic-grass",
+  pitchStyle: "tactical-pad",
   pitchPreset: "football-105x68",
   theme: "light",
   pitchView: "full",
@@ -60,6 +78,7 @@ const DEFAULT_SETTINGS: BoardSettings = {
     focus: "full",
     visibleTeams: ["home"],
     emphasizeEquipment: true,
+    fieldLayout: "none",
   },
 };
 
@@ -91,6 +110,7 @@ interface TacticalBoardStore {
   moveEntity: (entityId: Id, position: Point, frameId?: Id) => void;
   removePlayerFromPitch: (playerId: Id, frameId?: Id) => void;
   returnPlayerToPitch: (playerId: Id, frameId?: Id) => void;
+  placePlayerOnPitch: (playerId: Id, position: Point, frameId?: Id) => void;
   substitutePlayers: (
     benchPlayerId: Id,
     fieldPlayerId: Id,
@@ -340,6 +360,122 @@ const buildTeamEntities = (
   return [goalkeeper, ...outfield, benchGoalkeeper, ...benchPlayers];
 };
 
+const createMockPlayerEntity = (
+  team: TeamSide,
+  color: string,
+  player: MockPlayerRecord,
+  defaultPosition: Point,
+  isStarter: boolean,
+): TacticalEntity => ({
+  id: `${team}-${player.id}`,
+  kind: player.role,
+  label: String(player.shirtNumber),
+  team,
+  number: player.shirtNumber,
+  name: player.fullName,
+  avatarUrl: player.avatarUrl,
+  color,
+  jerseyStyle:
+    player.jerseyStyle ??
+    (player.role === "goalkeeper"
+      ? "bordered"
+      : team === "home"
+        ? "striped"
+        : "solid"),
+  isStarter,
+  radius: player.role === "goalkeeper" ? 2.3 : 2.1,
+  rotation: 0,
+  defaultPosition,
+});
+
+const buildTeamEntitiesFromMockDatabase = (
+  team: TeamSide,
+  dimensions = PITCH_DIMENSIONS,
+): TacticalEntity[] => {
+  const squad = MOCK_MATCH_DATABASE[team];
+  if (!squad) {
+    return buildTeamEntities(
+      team,
+      team === "home" ? "4-3-3" : "4-4-2",
+      team === "home" ? "#2563eb" : "#f59e0b",
+      dimensions,
+    );
+  }
+
+  const goalkeeperOffsetX = (8 / 105) * dimensions.width;
+  const goalkeeperPoint =
+    team === "home"
+      ? { x: goalkeeperOffsetX, y: dimensions.height / 2 }
+      : { x: dimensions.width - goalkeeperOffsetX, y: dimensions.height / 2 };
+  const outfieldPositions = buildOutfieldPositions(
+    squad.formation,
+    team,
+    dimensions,
+  );
+
+  const starterRecords = squad.starterIds
+    .map((playerId) => getMockPlayerById(playerId))
+    .filter((player): player is MockPlayerRecord => Boolean(player));
+  const benchRecords = squad.benchIds
+    .map((playerId) => getMockPlayerById(playerId))
+    .filter((player): player is MockPlayerRecord => Boolean(player));
+
+  const starterGoalkeeper = starterRecords.find(
+    (player) => player.role === "goalkeeper",
+  );
+  const starterOutfield = starterRecords.filter(
+    (player) => player.role === "player",
+  );
+  const benchGoalkeeper = benchRecords.find(
+    (player) => player.role === "goalkeeper",
+  );
+  const benchOutfield = benchRecords.filter((player) => player.role === "player");
+
+  if (
+    !starterGoalkeeper ||
+    starterOutfield.length !== outfieldPositions.length ||
+    !benchGoalkeeper ||
+    benchOutfield.length < 6
+  ) {
+    return buildTeamEntities(team, squad.formation, squad.color, dimensions);
+  }
+
+  return [
+    createMockPlayerEntity(
+      team,
+      squad.color,
+      starterGoalkeeper,
+      goalkeeperPoint,
+      true,
+    ),
+    ...starterOutfield.map((player, index) =>
+      createMockPlayerEntity(
+        team,
+        squad.color,
+        player,
+        outfieldPositions[index],
+        true,
+      ),
+    ),
+    createMockPlayerEntity(
+      team,
+      squad.color,
+      benchGoalkeeper,
+      getBenchPosition(team, 0, dimensions),
+      false,
+    ),
+    ...benchOutfield.slice(0, 6).map((player, index) =>
+      createMockPlayerEntity(
+        team,
+        squad.color,
+        player,
+        getBenchPosition(team, index + 1, dimensions),
+        false,
+      ),
+    ),
+  ];
+};
+
 const buildEquipmentEntities = (): TacticalEntity[] => [];
 
 const toEntityMap = (entities: TacticalEntity[]): Record<Id, TacticalEntity> =>
@@ -547,8 +683,8 @@ const ensureFrameOverlays = (
 const createInitialSnapshot = (): TacticalBoardSnapshot => {
   const initialDimensions = getDimensionsByPreset(DEFAULT_SETTINGS.pitchPreset);
   const entities = toEntityMap([
-    ...buildTeamEntities("home", "4-3-3", "#2563eb", initialDimensions),
-    ...buildTeamEntities("away", "4-4-2", "#f59e0b", initialDimensions),
+    ...buildTeamEntitiesFromMockDatabase("home", initialDimensions),
+    ...buildTeamEntitiesFromMockDatabase("away", initialDimensions),
     ...buildEquipmentEntities(),
   ]);
 
@@ -959,20 +1095,14 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
           defaultPosition: input.position,
         };
       } else {
+        const defaults = EQUIPMENT_DEFAULTS[kind];
+
         nextEntity = {
           id,
           kind,
-          label:
-            input.label ??
-            (kind === "ball" ? "Bola" : kind === "cone" ? "Cone" : "Manequim"),
-          color:
-            input.color ??
-            (kind === "ball"
-              ? "#f8fafc"
-              : kind === "cone"
-                ? "#fb923c"
-                : "#94a3b8"),
-          radius: kind === "ball" ? 1.2 : kind === "cone" ? 1.4 : 1.8,
+          label: input.label ?? defaults.label,
+          color: input.color ?? defaults.color,
+          radius: defaults.radius,
           rotation: 0,
           defaultPosition: input.position,
         };
@@ -1103,6 +1233,45 @@ export const useTacticalBoardStore = create<TacticalBoardStore>((set, get) => ({
       frame.entityStates[playerId] = {
         position: getReturnPositionForPlayer(frame, draft.entities, entity),
         rotation: current?.rotation ?? 0,
+        visible: true,
+      };
+    });
+  },
+
+  placePlayerOnPitch: (playerId, position, frameId) => {
+    applyBoardMutation(set, get, (draft) => {
+      const entity = draft.entities[playerId];
+      if (!entity || !isTeamEntity(entity)) {
+        return false;
+      }
+
+      const targetFrameId = frameId ?? draft.activeFrameId;
+      const frame = getFrameById(draft.frames, targetFrameId);
+      if (!frame) {
+        return false;
+      }
+
+      const current = frame.entityStates[playerId];
+      if (current?.visible === true) {
+        return false;
+      }
+
+      if (
+        getTeamOnPitchCount(frame, draft.entities, entity.team) >=
+        MAX_PLAYERS_ON_PITCH
+      ) {
+        return false;
+      }
+
+      const dimensions =
+        PITCH_PRESET_DIMENSIONS[draft.settings.pitchPreset] ?? PITCH_DIMENSIONS;
+
+      frame.entityStates[playerId] = {
+        position: {
+          x: clamp(position.x, 0, dimensions.width),
+          y: clamp(position.y, 0, dimensions.height),
+        },
+        rotation: current?.rotation ?? entity.rotation ?? 0,
         visible: true,
       };
     });

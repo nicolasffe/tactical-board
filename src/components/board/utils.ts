@@ -19,20 +19,32 @@ export interface ViewBox {
 export const getPitchViewBox = (
   pitchView: PitchView,
   dimensions: PitchDimensions = PITCH_DIMENSIONS,
-): ViewBox =>
-  pitchView === "full"
-    ? {
-        x: 0,
-        y: 0,
-        width: dimensions.width,
-        height: dimensions.height,
-      }
-    : {
-        x: dimensions.width / 2,
-        y: 0,
-        width: dimensions.width / 2,
-        height: dimensions.height,
-      };
+): ViewBox => {
+  if (pitchView === "left-half") {
+    return {
+      x: 0,
+      y: 0,
+      width: dimensions.width / 2,
+      height: dimensions.height,
+    };
+  }
+
+  if (pitchView === "half" || pitchView === "right-half") {
+    return {
+      x: dimensions.width / 2,
+      y: 0,
+      width: dimensions.width / 2,
+      height: dimensions.height,
+    };
+  }
+
+  return {
+    x: 0,
+    y: 0,
+    width: dimensions.width,
+    height: dimensions.height,
+  };
+};
 
 export const toPitchPoint = (
   event: PointerEvent | React.PointerEvent,

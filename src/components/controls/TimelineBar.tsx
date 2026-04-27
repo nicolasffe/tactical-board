@@ -50,6 +50,7 @@ export function TimelineBar({
 
   const activeFrame =
     frames.find((frame) => frame.id === activeFrameId) ?? frames[0];
+  const controlsDisabled = isExportingGif;
   const gifButtonLabel = isExportingGif
     ? `${Math.round(gifExportProgress * 100)}%`
     : "GIF";
@@ -61,6 +62,7 @@ export function TimelineBar({
           type="button"
           className={iconButtonClass}
           onClick={() => addFrame()}
+          disabled={controlsDisabled}
           title="Adicionar quadro"
         >
           <Plus size={15} />
@@ -69,13 +71,14 @@ export function TimelineBar({
           type="button"
           className={iconButtonClass}
           onClick={() => duplicateFrame()}
+          disabled={controlsDisabled}
           title="Duplicar quadro"
         >
           <Copy size={15} />
         </button>
         <button
           type="button"
-          disabled={frames.length <= 1 || !activeFrame}
+          disabled={controlsDisabled || frames.length <= 1 || !activeFrame}
           className={iconButtonClass}
           onClick={() => activeFrame && removeFrame(activeFrame.id)}
           title="Remover quadro"
@@ -88,6 +91,7 @@ export function TimelineBar({
             type="button"
             className={`${iconButtonClass} border-sky-200 bg-sky-50 text-sky-700`}
             onClick={play}
+            disabled={controlsDisabled}
             title="Play"
           >
             <Play size={15} />
@@ -97,6 +101,7 @@ export function TimelineBar({
             type="button"
             className={`${iconButtonClass} border-sky-200 bg-sky-50 text-sky-700`}
             onClick={pause}
+            disabled={controlsDisabled}
             title="Pause"
           >
             <Pause size={15} />
@@ -107,6 +112,7 @@ export function TimelineBar({
           type="button"
           className={iconButtonClass}
           onClick={stop}
+          disabled={controlsDisabled}
           title="Parar"
         >
           <Square size={14} />
@@ -118,6 +124,7 @@ export function TimelineBar({
             playback.loop ? "border-indigo-200 bg-indigo-50 text-indigo-700" : ""
           }`}
           onClick={toggleLoop}
+          disabled={controlsDisabled}
           title="Loop"
         >
           <Repeat size={15} />
@@ -145,6 +152,7 @@ export function TimelineBar({
             step={0.1}
             value={playback.speed}
             onChange={(event) => setPlaybackSpeed(Number(event.target.value))}
+            disabled={controlsDisabled}
             title="Velocidade"
           />
           <span className="w-7 text-right text-[10px] font-semibold text-slate-600">
@@ -163,7 +171,8 @@ export function TimelineBar({
                   key={frame.id}
                   type="button"
                   onClick={() => setActiveFrame(frame.id)}
-                  className={`min-w-[76px] shrink-0 rounded-2xl border px-3 py-2 text-left transition ${
+                  disabled={controlsDisabled}
+                  className={`min-w-[76px] shrink-0 rounded-2xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
                     isActive
                       ? "border-sky-200 bg-sky-50 text-sky-700"
                       : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
@@ -191,6 +200,7 @@ export function TimelineBar({
                   Number(event.target.value) || 300,
                 )
               }
+              disabled={controlsDisabled}
               title="Duracao do quadro em ms"
             />
             <span className="text-[10px] font-semibold text-slate-500">ms</span>

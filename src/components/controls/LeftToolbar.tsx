@@ -2,6 +2,8 @@
 
 import {
   Circle,
+  Fence,
+  Goal,
   Grid3X3,
   Magnet,
   MousePointer2,
@@ -119,6 +121,45 @@ export function LeftToolbar() {
           >
             <Grid3X3 size={16} />
             Adicionar Manequim
+          </button>
+          <button
+            type="button"
+            className={baseButtonClass}
+            onClick={() =>
+              addEntity({
+                kind: "portableGoal",
+                position: { x: 68, y: 34 },
+              })
+            }
+          >
+            <Goal size={16} />
+            Adicionar Gol
+          </button>
+          <button
+            type="button"
+            className={baseButtonClass}
+            onClick={() =>
+              addEntity({
+                kind: "miniGoal",
+                position: { x: 38, y: 34 },
+              })
+            }
+          >
+            <Goal size={16} />
+            Adicionar Mini Gol
+          </button>
+          <button
+            type="button"
+            className={baseButtonClass}
+            onClick={() =>
+              addEntity({
+                kind: "hurdle",
+                position: { x: 52.5, y: 44 },
+              })
+            }
+          >
+            <Fence size={16} />
+            Adicionar Barreira
           </button>
         </div>
       </section>

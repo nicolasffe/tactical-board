@@ -162,7 +162,12 @@ export default function TacticalBoard() {
   });
 
   const handleExportGif = async () => {
-    if (isExportingGif || !svgRef.current) {
+    if (isExportingGif) {
+      return;
+    }
+
+    if (!svgRef.current) {
+      setGifExportError("Nao foi possivel encontrar o campo para gravar.");
       return;
     }
 
@@ -172,6 +177,7 @@ export default function TacticalBoard() {
     const previousPlayback = storeSnapshot.playback;
 
     if (frames.length === 0) {
+      setGifExportError("Crie pelo menos um quadro antes de gravar.");
       return;
     }
 
@@ -412,9 +418,13 @@ export default function TacticalBoard() {
     }`;
 
   return (
-    <main className="relative h-[100svh] w-full overflow-hidden">
+    <main className="relative h-screen min-h-[100dvh] w-full overflow-hidden [height:100lvh]">
       <div className="absolute inset-0">
-        <BoardCanvas svgRef={svgRef} benchDrag={benchDrag} />
+        <BoardCanvas
+          svgRef={svgRef}
+          benchDrag={benchDrag}
+          isExporting={isExportingGif}
+        />
       </div>
 
       <div
@@ -512,11 +522,12 @@ export default function TacticalBoard() {
 
       {showBottomPanelUI && (
         <div
-          className={`panel-float-in absolute inset-x-2 z-30 pointer-events-auto transition-all duration-300 sm:left-1/2 sm:inset-x-auto sm:-translate-x-1/2 ${
-            showPlaybackPanelUI && isMobile
-              ? "bottom-[8.2rem]"
-              : "bottom-2 sm:bottom-4"
+          className={`panel-float-in fixed inset-x-0 bottom-0 z-30 transition-all duration-300 ${
+            benchDrag
+              ? "pointer-events-none translate-y-[110%] opacity-0"
+              : "pointer-events-auto translate-y-0 opacity-100"
           }`}
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           <BottomPlayerPanel
             onClose={() => setShowBottomPanel(false)}
@@ -529,7 +540,11 @@ export default function TacticalBoard() {
       {benchDrag ? (
         <div className="pointer-events-none absolute inset-0 z-40">
           <div
-            className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[22px] border border-white/80 bg-white/94 px-3 py-2 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.42)] backdrop-blur-xl"
+            className={`absolute max-w-[min(78vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-[22px] border px-3 py-2 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.42)] backdrop-blur-xl ${
+              benchDrag.targetPlayerName
+                ? "border-emerald-200/90 bg-white/96"
+                : "border-white/80 bg-white/94"
+            }`}
             style={{
               left: benchDrag.clientX,
               top: benchDrag.clientY,
@@ -538,7 +553,11 @@ export default function TacticalBoard() {
             <div className="flex items-center gap-2">
               <span
                 className={`inline-flex h-9 w-9 items-center justify-center rounded-2xl text-sm font-bold text-white shadow-sm ${
-                  benchDrag.team === "home" ? "bg-sky-500" : "bg-amber-500"
+                  benchDrag.targetPlayerName
+                    ? "bg-emerald-500"
+                    : benchDrag.team === "home"
+                      ? "bg-sky-500"
+                      : "bg-amber-500"
                 }`}
               >
                 {benchDrag.playerNumber}
@@ -547,10 +566,46 @@ export default function TacticalBoard() {
                 <p className="truncate text-sm font-semibold text-slate-900">
                   {benchDrag.playerName}
                 </p>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  Solte sobre um jogador
+                <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  {benchDrag.targetPlayerName
+                    ? `Solte para trocar com ${benchDrag.targetPlayerName}`
+                    : benchDrag.fieldDropPoint
+                      ? "Solte para colocar em campo"
+                      : "Arraste ate um titular ou area livre"}
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isExportingGif ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/24 px-4 backdrop-blur-[2px]">
+          <div
+            className="w-[min(92vw,360px)] rounded-[24px] border border-white/80 bg-white/96 p-4 shadow-[0_30px_80px_-42px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/70"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-slate-950">
+                  Gravando GIF
+                </p>
+                <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  Preparando os quadros
+                </p>
+              </div>
+              <span className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">
+                {Math.round(gifExportProgress * 100)}%
+              </span>
+            </div>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-[linear-gradient(90deg,#0f172a,#475569)] transition-[width] duration-200"
+                style={{
+                  width: `${Math.max(4, Math.round(gifExportProgress * 100))}%`,
+                }}
+              />
             </div>
           </div>
         </div>
@@ -560,7 +615,7 @@ export default function TacticalBoard() {
         <>
           <button
             type="button"
-            className="absolute inset-0 z-30 bg-slate-950/12 backdrop-blur-[2px] sm:bg-slate-950/10"
+            className="absolute inset-0 z-30 bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.12),rgba(15,23,42,0.18))] backdrop-blur-[3px] sm:bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.1),rgba(15,23,42,0.16))]"
             onClick={() => setShowPlayerEditor(false)}
             aria-label="Fechar editor"
           />
@@ -582,10 +637,10 @@ export default function TacticalBoard() {
                 : "bottom-4 right-4 w-[360px]"
           }`}
         >
-          <div className="relative rounded-[24px] border border-white/75 bg-white/88 p-2 shadow-[0_28px_64px_-34px_rgba(15,23,42,0.42)] backdrop-blur-2xl">
+          <div className="relative rounded-[26px] border border-white/80 bg-[linear-gradient(160deg,rgba(255,255,255,0.96),rgba(241,245,249,0.9))] p-2 shadow-[0_34px_84px_-40px_rgba(15,23,42,0.48)] ring-1 ring-slate-200/60 backdrop-blur-2xl">
             <div className="mb-2 flex items-center justify-between gap-2 px-1">
               <div
-                className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-600 shadow-sm cursor-grab active:cursor-grabbing"
+                className="inline-flex h-9 items-center gap-1.5 rounded-[16px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] px-3 text-[11px] font-semibold text-slate-600 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] cursor-grab active:cursor-grabbing"
                 onPointerDown={handlePlaybackDragStart}
                 onPointerMove={handlePlaybackDragMove}
                 onPointerUp={handlePlaybackDragEnd}
@@ -597,7 +652,7 @@ export default function TacticalBoard() {
 
               <button
                 type="button"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-[16px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-600 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
                 onClick={() => setShowPlaybackPanel(false)}
                 aria-label="Fechar animacao"
               >
