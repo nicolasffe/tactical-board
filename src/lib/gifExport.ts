@@ -23,7 +23,7 @@ const loadSvgImage = (url: string): Promise<HTMLImageElement> =>
     image.decoding = "async";
     image.onload = () => resolve(image);
     image.onerror = () => {
-      reject(new Error("Nao foi possivel renderizar o quadro para o GIF."));
+      reject(new Error("Não foi possível renderizar o quadro para o GIF."));
     };
     image.src = url;
   });
@@ -72,7 +72,7 @@ export const renderSvgToImageData = async (
   });
 
   if (!context) {
-    throw new Error("Nao foi possivel preparar o canvas de exportacao.");
+    throw new Error("Não foi possível preparar o canvas de exportação.");
   }
 
   const clone = svg.cloneNode(true) as SVGSVGElement;

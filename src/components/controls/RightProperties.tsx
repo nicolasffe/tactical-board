@@ -41,7 +41,7 @@ export function RightProperties() {
       {selectedEntity ? (
         <section className="space-y-3">
           <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
-            Entidade Selecionada
+            Entidade selecionada
           </p>
 
           <div className="space-y-1">
@@ -110,7 +110,7 @@ export function RightProperties() {
             onClick={() => removeEntity(selectedEntity.id)}
           >
             <Trash2 size={15} />
-            Remover Entidade
+            Remover entidade
           </button>
         </section>
       ) : selectedLine ? (
@@ -139,7 +139,7 @@ function LineProperties({ line, onUpdate, onDelete }: LinePropertiesProps) {
   return (
     <section className="space-y-3">
       <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
-        Linha Selecionada
+        Linha selecionada
       </p>
 
       <div className="space-y-1">
@@ -190,7 +190,7 @@ function LineProperties({ line, onUpdate, onDelete }: LinePropertiesProps) {
         onClick={() => onDelete(line.id)}
       >
         <Trash2 size={15} />
-        Excluir Linha
+        Excluir linha
       </button>
     </section>
   );

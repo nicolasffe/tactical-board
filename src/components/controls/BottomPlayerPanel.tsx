@@ -125,7 +125,7 @@ function PlayerAvatar({ player, jerseyStyle }: PlayerAvatarProps) {
         className="flex h-full w-full items-center justify-center rounded-[10px] text-[10px] font-semibold text-white shadow-sm"
         style={jerseyStyle}
       >
-        {player.kind === "goalkeeper" ? "GK" : "P"}
+        {player.kind === "goalkeeper" ? "G" : "J"}
       </div>
     </div>
   );
@@ -568,7 +568,7 @@ export function BottomPlayerPanel({
                   ? "Mandar ao banco"
                   : canEnterDirectly
                     ? "Colocar em campo"
-                    : "Arraste ate um titular no campo"
+                    : "Arraste até um titular no campo"
               }
               style={{ touchAction: needsDragSubstitution ? "none" : "pan-x" }}
             >

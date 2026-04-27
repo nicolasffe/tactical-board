@@ -147,7 +147,7 @@ export default function TacticalBoard() {
 
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `tatica-${timestamp}.json`;
+    anchor.download = `tática-${timestamp}.json`;
     anchor.click();
 
     URL.revokeObjectURL(url);
@@ -167,7 +167,7 @@ export default function TacticalBoard() {
     }
 
     if (!svgRef.current) {
-      setGifExportError("Nao foi possivel encontrar o campo para gravar.");
+      setGifExportError("Não foi possível encontrar o campo para gravar.");
       return;
     }
 
@@ -311,12 +311,12 @@ export default function TacticalBoard() {
       encoder.finish();
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      downloadGif(encoder.bytes(), `animacao-${timestamp}.gif`);
+      downloadGif(encoder.bytes(), `animação-${timestamp}.gif`);
     } catch (error) {
       setGifExportError(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel exportar o GIF.",
+          : "Não foi possível exportar o GIF.",
       );
     } finally {
       useTacticalBoardStore.setState({
@@ -466,8 +466,8 @@ export default function TacticalBoard() {
             type="button"
             className={railButtonClass(showPlaybackPanel)}
             onClick={() => setShowPlaybackPanel((current) => !current)}
-            aria-label="Alternar animacao"
-            title="Animacao"
+            aria-label="Alternar animação"
+            title="Animação"
           >
             {showPlaybackPanel ? <Pause size={15} /> : <Play size={15} />}
           </button>
@@ -498,8 +498,8 @@ export default function TacticalBoard() {
             type="button"
             className={railButtonClass(false)}
             onClick={resetBoard}
-            aria-label="Resetar quadro"
-            title="Resetar quadro"
+            aria-label="Redefinir quadro"
+            title="Redefinir quadro"
           >
             <RotateCcw size={15} />
           </button>
@@ -571,7 +571,7 @@ export default function TacticalBoard() {
                     ? `Solte para trocar com ${benchDrag.targetPlayerName}`
                     : benchDrag.fieldDropPoint
                       ? "Solte para colocar em campo"
-                      : "Arraste ate um titular ou area livre"}
+                      : "Arraste até um titular ou uma área livre"}
                 </p>
               </div>
             </div>
@@ -645,7 +645,7 @@ export default function TacticalBoard() {
                 onPointerMove={handlePlaybackDragMove}
                 onPointerUp={handlePlaybackDragEnd}
                 onPointerCancel={handlePlaybackDragEnd}
-                title="Mover animacao"
+                title="Mover animação"
               >
                 <GripHorizontal size={12} />
               </div>
@@ -654,7 +654,7 @@ export default function TacticalBoard() {
                 type="button"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-[16px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-600 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
                 onClick={() => setShowPlaybackPanel(false)}
-                aria-label="Fechar animacao"
+                aria-label="Fechar animação"
               >
                 <X size={13} />
               </button>

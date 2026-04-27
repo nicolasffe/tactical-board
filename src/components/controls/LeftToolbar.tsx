@@ -94,7 +94,7 @@ export function LeftToolbar() {
             }
           >
             <Circle size={16} />
-            Adicionar Bola
+            Adicionar bola
           </button>
           <button
             type="button"
@@ -107,7 +107,7 @@ export function LeftToolbar() {
             }
           >
             <Triangle size={16} />
-            Adicionar Cone
+            Adicionar cone
           </button>
           <button
             type="button"
@@ -120,7 +120,7 @@ export function LeftToolbar() {
             }
           >
             <Grid3X3 size={16} />
-            Adicionar Manequim
+            Adicionar manequim
           </button>
           <button
             type="button"
@@ -133,7 +133,7 @@ export function LeftToolbar() {
             }
           >
             <Goal size={16} />
-            Adicionar Gol
+            Adicionar gol
           </button>
           <button
             type="button"
@@ -146,7 +146,7 @@ export function LeftToolbar() {
             }
           >
             <Goal size={16} />
-            Adicionar Mini Gol
+            Adicionar mini gol
           </button>
           <button
             type="button"
@@ -159,7 +159,7 @@ export function LeftToolbar() {
             }
           >
             <Fence size={16} />
-            Adicionar Barreira
+            Adicionar barreira
           </button>
         </div>
       </section>
@@ -180,8 +180,8 @@ export function LeftToolbar() {
           >
             <Grid3X3 size={16} />
             {settings.pitchView === "full"
-              ? "Alternar para Meio-Campo"
-              : "Alternar para Campo Inteiro"}
+              ? "Alternar para meio-campo"
+              : "Alternar para campo inteiro"}
           </button>
           <button
             type="button"
@@ -193,7 +193,7 @@ export function LeftToolbar() {
             }
           >
             <Grid3X3 size={16} />
-            {settings.showGrid ? "Ocultar Grade" : "Mostrar Grade"}
+            {settings.showGrid ? "Ocultar grade" : "Mostrar grade"}
           </button>
           <button
             type="button"
@@ -205,7 +205,7 @@ export function LeftToolbar() {
             }
           >
             <Grid3X3 size={16} />
-            {settings.showZones ? "Ocultar Zonas" : "Mostrar Zonas"}
+            {settings.showZones ? "Ocultar zonas" : "Mostrar zonas"}
           </button>
           <button
             type="button"
@@ -217,7 +217,7 @@ export function LeftToolbar() {
             }
           >
             <MousePointer2 size={16} />
-            {settings.showPlayerNames ? "Ocultar Nomes" : "Mostrar Nomes"}
+            {settings.showPlayerNames ? "Ocultar nomes" : "Mostrar nomes"}
           </button>
           <button
             type="button"
@@ -229,7 +229,9 @@ export function LeftToolbar() {
             }
           >
             <Magnet size={16} />
-            {settings.snapToEntities ? "Ajuste: Ativado" : "Ajuste: Desativado"}
+            {settings.snapToEntities
+              ? "Encaixe: ativado"
+              : "Encaixe: desativado"}
           </button>
         </div>
       </section>
@@ -259,7 +261,7 @@ export function LeftToolbar() {
           </button>
           <button type="button" className={baseButtonClass} onClick={resetBoard}>
             <RotateCcw size={16} />
-            Redefinir Quadro
+            Redefinir quadro
           </button>
         </div>
       </section>

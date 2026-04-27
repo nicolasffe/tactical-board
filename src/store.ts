@@ -283,7 +283,7 @@ const buildTeamEntities = (
   color: string,
   dimensions = PITCH_DIMENSIONS,
 ): TacticalEntity[] => {
-  const sidePrefix = team === "home" ? "H" : "A";
+  const sidePrefix = team === "home" ? "C" : "V";
   const goalkeeperOffsetX = (8 / 105) * dimensions.width;
   const goalkeeperPoint =
     team === "home"
@@ -297,7 +297,7 @@ const buildTeamEntities = (
     label: `${sidePrefix}1`,
     team,
     number: 1,
-    name: `${sidePrefix} GK`,
+    name: `${sidePrefix} Goleiro`,
     color,
     jerseyStyle: "bordered",
     isStarter: true,
@@ -330,7 +330,7 @@ const buildTeamEntities = (
     label: "12",
     team,
     number: 12,
-    name: `${sidePrefix} GK 12`,
+    name: `${sidePrefix} Goleiro 12`,
     color,
     jerseyStyle: "bordered",
     isStarter: false,

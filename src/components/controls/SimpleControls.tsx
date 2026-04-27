@@ -62,7 +62,7 @@ const trainingFieldLayoutOptions: Array<{
   value: TrainingFieldLayout;
   label: string;
 }> = [
-  { value: "none", label: "Sem divisao" },
+  { value: "none", label: "Sem divisão" },
   { value: "vertical-halves", label: "2 meios" },
   { value: "horizontal-halves", label: "2 faixas" },
   { value: "horizontal-thirds", label: "3 faixas" },
@@ -73,10 +73,10 @@ const trainingFieldLayoutOptions: Array<{
   { value: "six-zones", label: "6 zonas" },
   { value: "central-corridor", label: "Corredor central" },
   { value: "wide-channels", label: "Laterais" },
-  { value: "attacking-third", label: "Terco ofensivo" },
-  { value: "defensive-third", label: "Terco defensivo" },
-  { value: "attacking-channels", label: "Finalizacao" },
-  { value: "defensive-channels", label: "Construcao" },
+  { value: "attacking-third", label: "Terço ofensivo" },
+  { value: "defensive-third", label: "Terço defensivo" },
+  { value: "attacking-channels", label: "Finalização" },
+  { value: "defensive-channels", label: "Construção" },
 ];
 
 const trainingPitchViewOptions: Array<{
@@ -100,9 +100,9 @@ const isTrainingEquipmentEntity = (entity: TacticalEntity): boolean =>
   entity.kind === "hurdle";
 
 const pitchStyleOptions: Array<{ value: PitchStyle; label: string }> = [
-  { value: "tactical-pad", label: "Tactical Pad" },
+  { value: "tactical-pad", label: "Prancheta tática" },
   { value: "realistic-grass", label: "Grama" },
-  { value: "blueprint", label: "Blueprint" },
+  { value: "blueprint", label: "Planta técnica" },
   { value: "minimal-light", label: "Claro" },
   { value: "minimal-dark", label: "Escuro" },
 ];
@@ -554,7 +554,7 @@ export function SimpleControls({
         <SectionCard icon={MousePointer2} title="Ferramentas">
           <div className="grid grid-cols-2 gap-2">
             <ToolTile
-              shortLabel="Selecao"
+              shortLabel="Seleção"
               icon={MousePointer2}
               active={activeTool === "select"}
               clicked={clickedTool === "select"}
@@ -603,7 +603,7 @@ export function SimpleControls({
               onClick={() => handleToolSelect("text")}
             />
             <ToolTile
-              shortLabel="Lasso"
+              shortLabel="Laço"
               icon={ScanLine}
               active={activeTool === "lasso"}
               clicked={clickedTool === "lasso"}
@@ -653,13 +653,13 @@ export function SimpleControls({
                   snapToEntities: !settings.snapToEntities,
                 })
               }
-              label="Snap"
+              label="Encaixe"
               icon={MousePointer2}
             />
           </div>
         </SectionCard>
 
-        <SectionCard icon={Grid3X3} title="Formacao">
+        <SectionCard icon={Grid3X3} title="Formação">
           <div className="grid grid-cols-2 gap-2">
             <OptionField
               icon={UsersRound}
@@ -676,7 +676,7 @@ export function SimpleControls({
               onChange={(nextValue) =>
                 setFormation(nextValue as FormationPreset)
               }
-              title="Selecionar formacao"
+              title="Selecionar formação"
             />
           </div>
 

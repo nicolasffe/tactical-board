@@ -92,7 +92,7 @@ export function TimelineBar({
             className={`${iconButtonClass} border-sky-200 bg-sky-50 text-sky-700`}
             onClick={play}
             disabled={controlsDisabled}
-            title="Play"
+            title="Reproduzir"
           >
             <Play size={15} />
           </button>
@@ -102,7 +102,7 @@ export function TimelineBar({
             className={`${iconButtonClass} border-sky-200 bg-sky-50 text-sky-700`}
             onClick={pause}
             disabled={controlsDisabled}
-            title="Pause"
+            title="Pausar"
           >
             <Pause size={15} />
           </button>
@@ -125,7 +125,7 @@ export function TimelineBar({
           }`}
           onClick={toggleLoop}
           disabled={controlsDisabled}
-          title="Loop"
+          title="Repetir em loop"
         >
           <Repeat size={15} />
         </button>
@@ -136,7 +136,7 @@ export function TimelineBar({
             className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45 sm:text-xs"
             onClick={onExportGif}
             disabled={isExportingGif}
-            title="Exportar animacao em GIF"
+            title="Exportar animação em GIF"
           >
             <Download size={14} />
             {gifButtonLabel}
@@ -201,7 +201,7 @@ export function TimelineBar({
                 )
               }
               disabled={controlsDisabled}
-              title="Duracao do quadro em ms"
+              title="Duração do quadro em ms"
             />
             <span className="text-[10px] font-semibold text-slate-500">ms</span>
           </div>

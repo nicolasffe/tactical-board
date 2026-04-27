@@ -24,7 +24,7 @@ export function TopControls({ onExportPng, onExportJson }: TopControlsProps) {
   return (
     <header className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-800 bg-[#0a1730] p-4">
       <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-        Formações Predefinidas
+        Formações predefinidas
       </span>
 
       <select
@@ -32,8 +32,8 @@ export function TopControls({ onExportPng, onExportJson }: TopControlsProps) {
         value={team}
         onChange={(event) => setTeam(event.target.value as TeamSide)}
       >
-        <option value="home">Time da Casa</option>
-        <option value="away">Time Visitante</option>
+        <option value="home">Time da casa</option>
+        <option value="away">Time visitante</option>
       </select>
 
       <select

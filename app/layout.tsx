@@ -5,7 +5,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "TacticalPad Studio",
   description:
-    "Quadro tatico profissional para montar jogadas, treinos e apresentacoes de futebol.",
+    "Quadro tático profissional para montar jogadas, treinos e apresentações de futebol.",
 };
 
 export default function RootLayout({

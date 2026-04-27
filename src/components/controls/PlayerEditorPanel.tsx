@@ -225,7 +225,7 @@ export function PlayerEditorPanel({
         </header>
 
         <div className="mt-4 rounded-[22px] border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-          Nenhum jogador disponivel.
+          Nenhum jogador disponível.
         </div>
       </aside>
     );
@@ -319,7 +319,7 @@ export function PlayerEditorPanel({
         </div>
 
         <NavButton
-          title="Proximo jogador"
+          title="Próximo jogador"
           onClick={() => goToRelativePlayer(1)}
         >
           <ChevronRight size={15} />
@@ -381,7 +381,7 @@ export function PlayerEditorPanel({
             min={1}
             max={99}
             value={selectedPlayer.number}
-            title={`Numero de ${selectedPlayer.name}`}
+            title={`Número de ${selectedPlayer.name}`}
             onChange={(event) => {
               const nextNumber =
                 Number(event.target.value) || selectedPlayer.number;
