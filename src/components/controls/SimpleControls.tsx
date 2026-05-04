@@ -142,7 +142,6 @@ export function SimpleControls({
   const [formation, setFormation] = useState<FormationPreset>("4-3-3");
   const [trainingSeed, setTrainingSeed] = useState(0);
   const [clickedTool, setClickedTool] = useState<DrawTool | null>(null);
-  const [showFieldLayoutPicker, setShowFieldLayoutPicker] = useState(false);
 
   const activeFrame = useMemo(
     () => frames.find((frame) => frame.id === activeFrameId) ?? frames[0],
@@ -209,7 +208,6 @@ export function SimpleControls({
         fieldLayout,
       },
     });
-    setShowFieldLayoutPicker(false);
   };
 
   const onChangeTrainingPitchView = (pitchView: PitchView) => {
@@ -462,44 +460,22 @@ export function SimpleControls({
                   />
                 ))}
               </div>
+            </>
+          )}
 
-              <button
-                type="button"
-                className={`${subtleButtonClass} mt-2 w-full justify-between ${
-                  settings.training.fieldLayout !== "none"
-                    ? activeSubtleButtonClass
-                    : ""
-                }`}
-                onClick={() => setShowFieldLayoutPicker((current) => !current)}
-                aria-expanded={showFieldLayoutPicker}
-              >
-                <span className="inline-flex min-w-0 items-center gap-2">
-                  <Grid3X3 size={14} className="shrink-0" />
-                  <span className="truncate">Dividir</span>
-                </span>
-                <span className="truncate text-[10px] text-slate-500">
-                  {
-                    trainingFieldLayoutOptions.find(
-                      (option) =>
-                        option.value === settings.training.fieldLayout,
-                    )?.label
-                  }
-                </span>
-              </button>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {trainingFieldLayoutOptions.map((option) => (
+              <MiniFieldLayoutButton
+                key={option.value}
+                option={option}
+                active={settings.training.fieldLayout === option.value}
+                onClick={() => onChangeTrainingFieldLayout(option.value)}
+              />
+            ))}
+          </div>
 
-              {showFieldLayoutPicker && (
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {trainingFieldLayoutOptions.map((option) => (
-                    <MiniFieldLayoutButton
-                      key={option.value}
-                      option={option}
-                      active={settings.training.fieldLayout === option.value}
-                      onClick={() => onChangeTrainingFieldLayout(option.value)}
-                    />
-                  ))}
-                </div>
-              )}
-
+          {settings.mode === "training" && (
+            <>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <ActionButton icon={Triangle} label="Cone" onClick={addTrainingCone} />
                 <ActionButton
@@ -623,19 +599,7 @@ export function SimpleControls({
             title="Estilo visual do campo"
           />
 
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <ToggleButton
-              active={settings.showGrid}
-              onClick={() => setBoardSettings({ showGrid: !settings.showGrid })}
-              label="Grade"
-              icon={Grid3X3}
-            />
-            <ToggleButton
-              active={settings.showZones}
-              onClick={() => setBoardSettings({ showZones: !settings.showZones })}
-              label="Zonas"
-              icon={Grid3X3}
-            />
+          <div className="mt-2 grid grid-cols-1 gap-2">
             <ToggleButton
               active={settings.showPlayerNames}
               onClick={() =>
@@ -645,16 +609,6 @@ export function SimpleControls({
               }
               label="Nomes"
               icon={UsersRound}
-            />
-            <ToggleButton
-              active={settings.snapToEntities}
-              onClick={() =>
-                setBoardSettings({
-                  snapToEntities: !settings.snapToEntities,
-                })
-              }
-              label="Encaixe"
-              icon={MousePointer2}
             />
           </div>
         </SectionCard>

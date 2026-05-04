@@ -7,8 +7,6 @@ import type {
 
 interface PitchLayerProps {
   dimensions: PitchDimensions;
-  showGrid: boolean;
-  showZones: boolean;
   trainingFieldLayout: TrainingFieldLayout;
   pitchStyle: PitchStyle;
   theme: UiTheme;
@@ -170,8 +168,6 @@ const getTrainingLayoutLines = (
 
 export function PitchLayer({
   dimensions,
-  showGrid,
-  showZones,
   trainingFieldLayout,
   pitchStyle,
   theme,
@@ -219,8 +215,15 @@ export function PitchLayer({
   const rightPenaltyArcX = width - touchlineInset - scaledPenaltyAreaWidth;
   const trainingLayoutStroke =
     isTacticalPad || pitchStyle === "realistic-grass"
-      ? "rgba(236, 247, 218, 0.58)"
-      : palette.zonesStroke;
+      ? "rgba(255, 255, 255, 0.86)"
+      : pitchStyle === "blueprint"
+        ? "rgba(190, 226, 255, 0.72)"
+        : pitchStyle === "minimal-light"
+          ? "rgba(15, 23, 42, 0.5)"
+          : pitchStyle === "minimal-dark"
+            ? "rgba(248, 250, 252, 0.62)"
+            : palette.zonesStroke;
+  const trainingLayoutStrokeWidth = isTacticalPad ? 0.48 : 0.42;
   const trainingLayoutLines = getTrainingLayoutLines(
     trainingFieldLayout,
     touchlineInset,
@@ -460,40 +463,11 @@ export function PitchLayer({
         />
       </g>
 
-      {showGrid && (
-        <g stroke={palette.grid} strokeWidth={0.18}>
-          {Array.from({ length: 10 }, (_, index) => {
-            const x = ((index + 1) * width) / 11;
-            return (
-              <line key={`grid-v-${index}`} x1={x} y1={0} x2={x} y2={height} />
-            );
-          })}
-          {Array.from({ length: 6 }, (_, index) => {
-            const y = ((index + 1) * height) / 7;
-            return (
-              <line key={`grid-h-${index}`} x1={0} y1={y} x2={width} y2={y} />
-            );
-          })}
-        </g>
-      )}
-
-      {showZones && (
-        <g
-          stroke={palette.zonesStroke}
-          fill={palette.zonesFill}
-          strokeWidth={0.28}
-        >
-          <rect x={0} y={0} width={width / 3} height={height} />
-          <rect x={width / 3} y={0} width={width / 3} height={height} />
-          <rect x={(2 * width) / 3} y={0} width={width / 3} height={height} />
-        </g>
-      )}
-
       {trainingLayoutLines.length > 0 && (
         <g
           stroke={trainingLayoutStroke}
-          strokeWidth={isTacticalPad ? 0.32 : 0.26}
-          strokeDasharray="1.6 1.35"
+          strokeWidth={trainingLayoutStrokeWidth}
+          strokeDasharray="2.6 1.25"
           strokeLinecap="round"
           fill="none"
           pointerEvents="none"

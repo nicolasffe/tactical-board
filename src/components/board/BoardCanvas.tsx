@@ -24,7 +24,6 @@ import {
   buildWavyPath,
   clampPointToPitch,
   distance,
-  findNearestEntity,
   getPitchViewBox,
   resolveAnchor,
 } from "./utils";
@@ -1033,33 +1032,8 @@ export function BoardCanvas({
     bottom: Math.max(start.y, end.y),
   });
 
-  const visiblePositions = useMemo(() => {
-    const allowedEntityIds = new Set(
-      filteredEntityEntries.map((entity) => entity.id),
-    );
-    const next: Record<Id, Point> = {};
-    Object.entries(renderable.positions).forEach(([entityId, point]) => {
-      if (
-        (renderable.visibility[entityId] ?? true) &&
-        allowedEntityIds.has(entityId)
-      ) {
-        next[entityId] = point;
-      }
-    });
-    return next;
-  }, [filteredEntityEntries, renderable.positions, renderable.visibility]);
-
   const toAnchor = (point: Point): AnchorTarget => {
     const clamped = clampPointToPitch(point, pitchDimensions);
-    if (!settings.snapToEntities) {
-      return { kind: "free", point: clamped };
-    }
-
-    const nearest = findNearestEntity(clamped, visiblePositions, 3.3);
-    if (nearest) {
-      return { kind: "entity", entityId: nearest };
-    }
-
     return { kind: "free", point: clamped };
   };
 
@@ -1749,13 +1723,7 @@ export function BoardCanvas({
             >
               <PitchLayer
                 dimensions={pitchDimensions}
-                showGrid={settings.showGrid}
-                showZones={settings.showZones}
-                trainingFieldLayout={
-                  settings.mode === "training"
-                    ? settings.training.fieldLayout
-                    : "none"
-                }
+                trainingFieldLayout={settings.training.fieldLayout}
                 pitchStyle={settings.pitchStyle}
                 theme={settings.theme}
               />

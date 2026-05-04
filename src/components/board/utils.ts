@@ -78,25 +78,6 @@ export const clampPointToPitch = (
 export const distance = (a: Point, b: Point): number =>
   Math.hypot(a.x - b.x, a.y - b.y);
 
-export const findNearestEntity = (
-  point: Point,
-  entityPositions: Record<Id, Point>,
-  maxDistance = 3.2,
-): Id | null => {
-  let nearestId: Id | null = null;
-  let nearestDistance = Number.POSITIVE_INFINITY;
-
-  Object.entries(entityPositions).forEach(([entityId, entityPoint]) => {
-    const nextDistance = distance(point, entityPoint);
-    if (nextDistance <= maxDistance && nextDistance < nearestDistance) {
-      nearestDistance = nextDistance;
-      nearestId = entityId;
-    }
-  });
-
-  return nearestId;
-};
-
 export const resolveAnchor = (
   anchor: AnchorTarget,
   positions: Record<Id, Point>,

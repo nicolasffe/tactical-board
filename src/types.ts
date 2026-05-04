@@ -113,10 +113,7 @@ export interface BoardSettings {
   pitchPreset: PitchPreset;
   theme: UiTheme;
   pitchView: PitchView;
-  showGrid: boolean;
-  showZones: boolean;
   showPlayerNames: boolean;
-  snapToEntities: boolean;
   training: TrainingSettings;
 }
 

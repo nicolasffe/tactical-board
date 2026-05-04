@@ -70,10 +70,7 @@ const DEFAULT_SETTINGS: BoardSettings = {
   pitchPreset: "football-105x68",
   theme: "light",
   pitchView: "full",
-  showGrid: false,
-  showZones: false,
   showPlayerNames: false,
-  snapToEntities: true,
   training: {
     focus: "full",
     visibleTeams: ["home"],

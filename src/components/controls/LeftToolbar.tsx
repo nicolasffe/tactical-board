@@ -5,7 +5,6 @@ import {
   Fence,
   Goal,
   Grid3X3,
-  Magnet,
   MousePointer2,
   MoveRight,
   Redo2,
@@ -188,50 +187,12 @@ export function LeftToolbar() {
             className={baseButtonClass}
             onClick={() =>
               setBoardSettings({
-                showGrid: !settings.showGrid,
-              })
-            }
-          >
-            <Grid3X3 size={16} />
-            {settings.showGrid ? "Ocultar grade" : "Mostrar grade"}
-          </button>
-          <button
-            type="button"
-            className={baseButtonClass}
-            onClick={() =>
-              setBoardSettings({
-                showZones: !settings.showZones,
-              })
-            }
-          >
-            <Grid3X3 size={16} />
-            {settings.showZones ? "Ocultar zonas" : "Mostrar zonas"}
-          </button>
-          <button
-            type="button"
-            className={baseButtonClass}
-            onClick={() =>
-              setBoardSettings({
                 showPlayerNames: !settings.showPlayerNames,
               })
             }
           >
             <MousePointer2 size={16} />
             {settings.showPlayerNames ? "Ocultar nomes" : "Mostrar nomes"}
-          </button>
-          <button
-            type="button"
-            className={baseButtonClass}
-            onClick={() =>
-              setBoardSettings({
-                snapToEntities: !settings.snapToEntities,
-              })
-            }
-          >
-            <Magnet size={16} />
-            {settings.snapToEntities
-              ? "Encaixe: ativado"
-              : "Encaixe: desativado"}
           </button>
         </div>
       </section>
