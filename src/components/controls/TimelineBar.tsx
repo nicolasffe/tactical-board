@@ -14,7 +14,7 @@ import {
 import { useTacticalBoardStore } from "@/src/store";
 
 const iconButtonClass =
-  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45";
+  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-300/80 bg-white/94 text-slate-700 shadow-sm transition hover:border-teal-300 hover:bg-white disabled:cursor-not-allowed disabled:opacity-45";
 
 interface TimelineBarProps {
   onExportGif?: () => void;
@@ -56,7 +56,7 @@ export function TimelineBar({
     : "GIF";
 
   return (
-    <footer className="rounded-[22px] border border-slate-200/80 bg-white/96 p-2 shadow-[0_20px_52px_-30px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+    <footer className="rounded-lg border border-slate-300/80 bg-white/96 p-2 shadow-[0_20px_52px_-32px_rgba(15,23,42,0.48)] backdrop-blur-xl">
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -89,7 +89,7 @@ export function TimelineBar({
         {!playback.isPlaying ? (
           <button
             type="button"
-            className={`${iconButtonClass} border-sky-200 bg-sky-50 text-sky-700`}
+            className={`${iconButtonClass} border-teal-300 bg-teal-50 text-teal-800`}
             onClick={play}
             disabled={controlsDisabled}
             title="Reproduzir"
@@ -99,7 +99,7 @@ export function TimelineBar({
         ) : (
           <button
             type="button"
-            className={`${iconButtonClass} border-sky-200 bg-sky-50 text-sky-700`}
+            className={`${iconButtonClass} border-teal-300 bg-teal-50 text-teal-800`}
             onClick={pause}
             disabled={controlsDisabled}
             title="Pausar"
@@ -133,7 +133,7 @@ export function TimelineBar({
         {onExportGif ? (
           <button
             type="button"
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45 sm:text-xs"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-slate-300/80 bg-white/94 px-3 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 sm:text-xs"
             onClick={onExportGif}
             disabled={isExportingGif}
             title="Exportar animação em GIF"
@@ -143,7 +143,7 @@ export function TimelineBar({
           </button>
         ) : null}
 
-        <div className="flex w-full items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:ml-auto sm:w-auto sm:justify-normal">
+        <div className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-300/80 bg-white/94 px-3 py-2 shadow-sm sm:ml-auto sm:w-auto sm:justify-normal">
           <input
             className="h-1.5 flex-1 accent-sky-500 sm:w-20 sm:flex-none"
             type="range"
@@ -172,10 +172,10 @@ export function TimelineBar({
                   type="button"
                   onClick={() => setActiveFrame(frame.id)}
                   disabled={controlsDisabled}
-                  className={`min-w-[76px] shrink-0 rounded-2xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                  className={`min-w-[82px] shrink-0 rounded-lg border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
                     isActive
-                      ? "border-sky-200 bg-sky-50 text-sky-700"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                      ? "border-slate-950 bg-slate-950 text-white"
+                      : "border-slate-300/80 bg-white/94 text-slate-600 hover:border-teal-300"
                   }`}
                 >
                   <p className="text-[10px] font-semibold">#{index + 1}</p>
@@ -187,9 +187,9 @@ export function TimelineBar({
         </div>
 
         {activeFrame && (
-          <div className="flex w-full items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:ml-auto sm:w-auto sm:justify-normal">
+          <div className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-300/80 bg-white/94 px-3 py-2 shadow-sm sm:ml-auto sm:w-auto sm:justify-normal">
             <input
-              className="h-8 flex-1 rounded-xl border border-slate-200 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-sky-300 sm:w-20 sm:flex-none sm:text-xs"
+              className="h-8 flex-1 rounded-md border border-slate-300/80 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-teal-300 sm:w-20 sm:flex-none sm:text-xs"
               type="number"
               min={300}
               max={10000}

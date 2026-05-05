@@ -31,13 +31,13 @@ const getTeamTone = (team: TeamSide) =>
   team === "home"
     ? {
         strong:
-          "border-sky-200/80 bg-[linear-gradient(135deg,#38bdf8,#2563eb)] text-white",
-        count: "bg-sky-500/14 text-sky-200",
+          "border-sky-200/80 bg-sky-600 text-white",
+        count: "bg-sky-100 text-sky-700",
       }
     : {
         strong:
-          "border-amber-200/80 bg-[linear-gradient(135deg,#f59e0b,#ea580c)] text-white",
-        count: "bg-amber-400/18 text-amber-100",
+          "border-amber-200/80 bg-amber-500 text-white",
+        count: "bg-amber-100 text-amber-800",
       };
 
 const getPlayerStatusMeta = (
@@ -49,7 +49,7 @@ const getPlayerStatusMeta = (
       dotClass: "bg-emerald-500",
       accentClass: "bg-emerald-500/80",
       cardClass:
-        "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(248,250,252,0.95))] shadow-[0_18px_34px_-30px_rgba(15,23,42,0.28)] hover:border-slate-300 hover:-translate-y-0.5",
+        "border-slate-300/80 bg-white/94 shadow-[0_14px_30px_-26px_rgba(15,23,42,0.36)] hover:border-teal-300 hover:bg-white",
     };
   }
 
@@ -58,7 +58,7 @@ const getPlayerStatusMeta = (
       dotClass: "bg-sky-500",
       accentClass: "bg-sky-500/80",
       cardClass:
-        "border-emerald-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(236,253,245,0.86))] shadow-[0_18px_34px_-30px_rgba(16,185,129,0.24)] hover:border-emerald-300 hover:-translate-y-0.5",
+        "border-emerald-300/80 bg-emerald-50/92 shadow-[0_14px_30px_-26px_rgba(16,185,129,0.28)] hover:border-emerald-400 hover:bg-emerald-50",
     };
   }
 
@@ -66,7 +66,7 @@ const getPlayerStatusMeta = (
     dotClass: "bg-amber-500",
     accentClass: "bg-amber-500/80",
     cardClass:
-      "border-amber-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,251,235,0.86))] shadow-[0_18px_34px_-30px_rgba(245,158,11,0.22)] hover:border-amber-300 hover:-translate-y-0.5",
+      "border-amber-300/80 bg-amber-50/92 shadow-[0_14px_30px_-26px_rgba(245,158,11,0.28)] hover:border-amber-400 hover:bg-amber-50",
   };
 };
 
@@ -104,7 +104,7 @@ function PlayerAvatar({ player, jerseyStyle }: PlayerAvatarProps) {
 
   if (player.avatarUrl && !imageFailed) {
     return (
-      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-[13px] border border-white/80 bg-slate-100 shadow-sm sm:h-10 sm:w-10">
+      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-white/80 bg-slate-100 shadow-sm sm:h-10 sm:w-10">
         <Image
           src={player.avatarUrl}
           alt={player.name}
@@ -120,9 +120,9 @@ function PlayerAvatar({ player, jerseyStyle }: PlayerAvatarProps) {
   }
 
   return (
-    <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] border border-white/70 bg-white/50 p-1 shadow-sm sm:h-10 sm:w-10">
+    <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/70 bg-white/50 p-1 shadow-sm sm:h-10 sm:w-10">
       <div
-        className="flex h-full w-full items-center justify-center rounded-[10px] text-[10px] font-semibold text-white shadow-sm"
+        className="flex h-full w-full items-center justify-center rounded-md text-[10px] font-semibold text-white shadow-sm"
         style={jerseyStyle}
       >
         {player.kind === "goalkeeper" ? "G" : "J"}
@@ -469,12 +469,12 @@ export function BottomPlayerPanel({
 
   return (
     <aside
-      className={`relative w-full overflow-hidden rounded-t-[24px] border-x-0 border-b-0 border-t border-white/80 bg-[linear-gradient(160deg,rgba(255,255,255,0.96),rgba(241,245,249,0.9))] p-1.5 shadow-[0_-26px_68px_-44px_rgba(15,23,42,0.42)] ring-1 ring-slate-200/70 backdrop-blur-2xl sm:rounded-t-[26px] sm:p-2 ${className ?? ""}`}
+      className={`relative w-full overflow-hidden rounded-t-xl border-x-0 border-b-0 border-t border-slate-300/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(242,246,249,0.93))] p-1.5 shadow-[0_-26px_68px_-44px_rgba(15,23,42,0.46)] ring-1 ring-white/70 backdrop-blur-2xl sm:p-2 ${className ?? ""}`}
     >
-      <div className="pointer-events-none absolute inset-x-10 top-0 h-14 rounded-full bg-white/60 blur-2xl" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-slate-950/10" />
 
       <div className="relative flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex min-w-0 flex-1 rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(241,245,249,0.82))] p-1 shadow-[0_16px_32px_-28px_rgba(15,23,42,0.2)]">
+        <div className="grid w-full min-w-0 grid-cols-2 gap-1 rounded-lg border border-slate-300/80 bg-white/66 p-1 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.28)] sm:w-[360px] sm:flex-none">
           <TabButton
             label="Casa"
             meta={`${teamSummary.home.onPitch}/${teamSummary.home.total}`}
@@ -498,7 +498,7 @@ export function BottomPlayerPanel({
         </div>
 
         <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:flex-wrap sm:justify-end">
-          <span className="inline-flex h-9 items-center rounded-[16px] border border-slate-200/90 bg-white/92 px-3 text-[11px] font-semibold text-slate-700 shadow-sm backdrop-blur-sm">
+          <span className="inline-flex h-9 items-center rounded-lg border border-slate-300/80 bg-white/92 px-3 text-[11px] font-semibold text-slate-700 shadow-sm backdrop-blur-sm">
             {onPitchCount}/{MAX_PLAYERS_ON_PITCH}
           </span>
 
@@ -516,7 +516,7 @@ export function BottomPlayerPanel({
           {onOpenEditor ? (
             <button
               type="button"
-              className="inline-flex h-9 items-center gap-2 rounded-[16px] border border-slate-200/90 bg-white/94 px-3 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300/80 bg-white/94 px-3 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:bg-white"
               onClick={onOpenEditor}
               title="Editar elenco"
             >
@@ -559,7 +559,7 @@ export function BottomPlayerPanel({
                   handlePlayerCardClick(player);
                 }
               }}
-              className={`group relative min-w-[118px] overflow-hidden rounded-[18px] border px-2 py-2 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 sm:min-w-[130px] sm:rounded-[20px] sm:px-2.5 sm:py-2.5 ${statusMeta.cardClass}`}
+              className={`group relative min-w-[158px] overflow-hidden rounded-lg border px-2.5 py-2 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 sm:min-w-[178px] ${statusMeta.cardClass}`}
               data-substitution-source={
                 needsDragSubstitution ? player.id : undefined
               }
@@ -573,13 +573,13 @@ export function BottomPlayerPanel({
               style={{ touchAction: needsDragSubstitution ? "none" : "pan-x" }}
             >
               <span
-                className={`absolute inset-x-3 top-0 h-[2px] rounded-full ${statusMeta.accentClass}`}
+                className={`absolute inset-y-2 left-0 w-[3px] rounded-r-full ${statusMeta.accentClass}`}
                 aria-hidden="true"
               />
 
               <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-[14px] border text-sm font-bold shadow-sm sm:h-9 sm:w-9 ${teamTone.strong}`}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-md border text-sm font-bold shadow-sm sm:h-9 sm:w-9 ${teamTone.strong}`}
                 >
                   {player.number}
                 </span>
@@ -589,7 +589,7 @@ export function BottomPlayerPanel({
                     <button
                       type="button"
                       data-player-card-action="edit"
-                      className="inline-flex h-6 w-6 items-center justify-center rounded-[12px] border border-slate-200/90 bg-white/94 text-slate-500 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-slate-300/80 bg-white/94 text-slate-500 shadow-sm transition hover:border-teal-300 hover:bg-white"
                       title={`Editar ${player.name}`}
                       onClick={(event) => {
                         event.stopPropagation();
@@ -640,20 +640,33 @@ interface TabButtonProps {
 
 function TabButton({ label, meta, tone, active, onClick }: TabButtonProps) {
   const countClass = getTeamTone(tone).count;
+  const activeClass =
+    tone === "home"
+      ? "border-sky-300 bg-sky-50/90 text-slate-950 ring-1 ring-sky-100"
+      : "border-amber-300 bg-amber-50/90 text-slate-950 ring-1 ring-amber-100";
+  const dotClass = tone === "home" ? "bg-sky-500" : "bg-amber-500";
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-10 min-w-[112px] flex-1 items-center justify-between gap-2 rounded-[14px] px-3 text-left transition ${
+      className={`inline-flex h-9 min-w-0 items-center justify-between gap-2 rounded-md border px-3 text-left transition ${
         active
-          ? "bg-[linear-gradient(135deg,#0f172a,#1e293b)] text-white shadow-[0_16px_30px_-24px_rgba(15,23,42,0.36)]"
-          : "text-slate-500 hover:text-slate-700"
+          ? activeClass
+          : "border-transparent bg-transparent text-slate-500 hover:bg-white/82 hover:text-slate-800"
       }`}
     >
-      <span className="truncate text-[11px] font-semibold">{label}</span>
+      <span className="inline-flex min-w-0 items-center gap-2">
+        <span
+          className={`h-2 w-2 shrink-0 rounded-full ${
+            active ? dotClass : "bg-slate-300"
+          }`}
+          aria-hidden="true"
+        />
+        <span className="truncate text-[11px] font-semibold">{label}</span>
+      </span>
       <span
-        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
           active ? countClass : "bg-slate-100 text-slate-500"
         }`}
       >
@@ -673,7 +686,7 @@ function IconButton({ title, onClick, children }: IconButtonProps) {
   return (
     <button
       type="button"
-      className="inline-flex h-9 w-9 items-center justify-center rounded-[16px] border border-slate-200/90 bg-white/94 text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300/80 bg-white/94 text-slate-600 shadow-sm transition hover:border-teal-300 hover:bg-white"
       onClick={onClick}
       title={title}
       aria-label={title}

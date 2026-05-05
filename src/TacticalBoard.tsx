@@ -409,12 +409,12 @@ export default function TacticalBoard() {
   }, [isPlaybackDragged, showPlaybackPanelUI]);
 
   const railButtonClass = (active: boolean, disabled = false) =>
-    `group relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[14px] border shadow-sm backdrop-blur-md transition-all duration-200 sm:h-10 sm:w-10 sm:rounded-[18px] ${
+    `group relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border shadow-sm backdrop-blur-md transition-all duration-200 sm:h-10 sm:w-10 ${
       disabled
         ? "cursor-not-allowed border-white/18 bg-white/14 text-white/35 shadow-none"
         : active
-        ? "border-white/46 bg-white/26 text-white shadow-[0_16px_34px_-26px_rgba(15,23,42,0.62)]"
-        : "border-white/18 bg-slate-950/16 text-white/72 hover:border-white/30 hover:bg-white/18 hover:text-white"
+        ? "border-teal-200/70 bg-teal-400/22 text-white shadow-[0_16px_34px_-26px_rgba(15,23,42,0.62)]"
+        : "border-white/18 bg-slate-950/22 text-white/72 hover:border-white/36 hover:bg-white/18 hover:text-white"
     }`;
 
   return (
@@ -438,7 +438,7 @@ export default function TacticalBoard() {
         }
       >
         <div
-          className={`rounded-[18px] border border-white/12 bg-slate-950/10 p-1 shadow-[0_12px_38px_-28px_rgba(15,23,42,0.7)] backdrop-blur-md ${
+          className={`rounded-xl border border-white/14 bg-slate-950/20 p-1 shadow-[0_12px_38px_-28px_rgba(15,23,42,0.7)] backdrop-blur-md ${
             isMobile ? "grid grid-cols-3 gap-1" : "flex flex-col gap-1.5"
           }`}
         >
@@ -540,7 +540,7 @@ export default function TacticalBoard() {
       {benchDrag ? (
         <div className="pointer-events-none absolute inset-0 z-40">
           <div
-            className={`absolute max-w-[min(78vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-[22px] border px-3 py-2 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.42)] backdrop-blur-xl ${
+            className={`absolute max-w-[min(78vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border px-3 py-2 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.42)] backdrop-blur-xl ${
               benchDrag.targetPlayerName
                 ? "border-emerald-200/90 bg-white/96"
                 : "border-white/80 bg-white/94"
@@ -552,7 +552,7 @@ export default function TacticalBoard() {
           >
             <div className="flex items-center gap-2">
               <span
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-2xl text-sm font-bold text-white shadow-sm ${
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm ${
                   benchDrag.targetPlayerName
                     ? "bg-emerald-500"
                     : benchDrag.team === "home"
@@ -582,7 +582,7 @@ export default function TacticalBoard() {
       {isExportingGif ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/24 px-4 backdrop-blur-[2px]">
           <div
-            className="w-[min(92vw,360px)] rounded-[24px] border border-white/80 bg-white/96 p-4 shadow-[0_30px_80px_-42px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/70"
+            className="w-[min(92vw,360px)] rounded-xl border border-slate-300/80 bg-white/96 p-4 shadow-[0_30px_80px_-42px_rgba(15,23,42,0.55)] ring-1 ring-white/70"
             role="status"
             aria-live="polite"
           >
@@ -595,13 +595,13 @@ export default function TacticalBoard() {
                   Preparando os quadros
                 </p>
               </div>
-              <span className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">
+              <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">
                 {Math.round(gifExportProgress * 100)}%
               </span>
             </div>
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200">
               <div
-                className="h-full rounded-full bg-[linear-gradient(90deg,#0f172a,#475569)] transition-[width] duration-200"
+                className="h-full rounded-full bg-[linear-gradient(90deg,#0f766e,#0f172a)] transition-[width] duration-200"
                 style={{
                   width: `${Math.max(4, Math.round(gifExportProgress * 100))}%`,
                 }}
@@ -615,7 +615,7 @@ export default function TacticalBoard() {
         <>
           <button
             type="button"
-            className="absolute inset-0 z-30 bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.12),rgba(15,23,42,0.18))] backdrop-blur-[3px] sm:bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.1),rgba(15,23,42,0.16))]"
+            className="absolute inset-0 z-30 bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.14),rgba(15,23,42,0.22))] backdrop-blur-[3px] sm:bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.12),rgba(15,23,42,0.18))]"
             onClick={() => setShowPlayerEditor(false)}
             aria-label="Fechar editor"
           />
@@ -637,10 +637,10 @@ export default function TacticalBoard() {
                 : "bottom-4 right-4 w-[360px]"
           }`}
         >
-          <div className="relative rounded-[26px] border border-white/80 bg-[linear-gradient(160deg,rgba(255,255,255,0.96),rgba(241,245,249,0.9))] p-2 shadow-[0_34px_84px_-40px_rgba(15,23,42,0.48)] ring-1 ring-slate-200/60 backdrop-blur-2xl">
+          <div className="relative rounded-xl border border-slate-300/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,247,250,0.92))] p-2 shadow-[0_34px_84px_-40px_rgba(15,23,42,0.5)] ring-1 ring-white/70 backdrop-blur-2xl">
             <div className="mb-2 flex items-center justify-between gap-2 px-1">
               <div
-                className="inline-flex h-9 items-center gap-1.5 rounded-[16px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] px-3 text-[11px] font-semibold text-slate-600 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] cursor-grab active:cursor-grabbing"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-300/80 bg-white/94 px-3 text-[11px] font-semibold text-slate-600 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] cursor-grab active:cursor-grabbing"
                 onPointerDown={handlePlaybackDragStart}
                 onPointerMove={handlePlaybackDragMove}
                 onPointerUp={handlePlaybackDragEnd}
@@ -652,7 +652,7 @@ export default function TacticalBoard() {
 
               <button
                 type="button"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-[16px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-600 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300/80 bg-white/94 text-slate-600 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition hover:border-teal-300 hover:bg-white"
                 onClick={() => setShowPlaybackPanel(false)}
                 aria-label="Fechar animação"
               >

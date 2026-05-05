@@ -5,8 +5,16 @@ import { Trash2 } from "lucide-react";
 import { useTacticalBoardStore } from "@/src/store";
 import type { TacticalLine } from "@/src/types";
 
-const panelClass =
-  "rounded-md border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-sm text-slate-100 focus:border-[#19d3c5] focus:outline-none";
+const fieldClass =
+  "rounded-lg border border-slate-300/80 bg-white/94 px-3 py-2 text-sm text-slate-800 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] outline-none transition focus:border-teal-300 focus:ring-2 focus:ring-teal-100";
+
+const colorInputClass =
+  "h-9 w-full cursor-pointer rounded-lg border border-slate-300/80 bg-white/94 px-1 py-1 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)]";
+
+const labelClass = "text-xs font-semibold text-slate-500";
+
+const dangerButtonClass =
+  "mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100";
 
 export function RightProperties() {
   const entities = useTacticalBoardStore((state) => state.entities);
@@ -31,23 +39,23 @@ export function RightProperties() {
     : null;
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col gap-4 rounded-xl border border-slate-800 bg-[#0a1730] p-4">
+    <aside className="flex w-72 shrink-0 flex-col gap-4 rounded-xl border border-slate-300/75 bg-white/94 p-4 shadow-[0_24px_64px_-44px_rgba(15,23,42,0.46)] backdrop-blur-xl">
       <header>
-        <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
           Propriedades
         </h2>
       </header>
 
       {selectedEntity ? (
         <section className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
             Entidade selecionada
           </p>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-400">Rótulo</label>
+            <label className={labelClass}>Rotulo</label>
             <input
-              className={`${panelClass} w-full`}
+              className={`${fieldClass} w-full`}
               value={selectedEntity.label}
               onChange={(event) =>
                 updateEntity(selectedEntity.id, { label: event.target.value })
@@ -59,9 +67,9 @@ export function RightProperties() {
             selectedEntity.kind === "goalkeeper") && (
             <>
               <div className="space-y-1">
-                <label className="text-xs text-slate-400">Nome</label>
+                <label className={labelClass}>Nome</label>
                 <input
-                  className={`${panelClass} w-full`}
+                  className={`${fieldClass} w-full`}
                   value={selectedEntity.name}
                   onChange={(event) =>
                     updateEntity(selectedEntity.id, {
@@ -71,9 +79,9 @@ export function RightProperties() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs text-slate-400">Número</label>
+                <label className={labelClass}>Numero</label>
                 <input
-                  className={`${panelClass} w-full`}
+                  className={`${fieldClass} w-full`}
                   type="number"
                   min={1}
                   max={99}
@@ -93,9 +101,9 @@ export function RightProperties() {
           )}
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-400">Cor</label>
+            <label className={labelClass}>Cor</label>
             <input
-              className="h-9 w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900 px-1 py-1"
+              className={colorInputClass}
               type="color"
               value={selectedEntity.color}
               onChange={(event) =>
@@ -106,7 +114,7 @@ export function RightProperties() {
 
           <button
             type="button"
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-red-500/55 bg-red-600/12 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-600/20"
+            className={dangerButtonClass}
             onClick={() => removeEntity(selectedEntity.id)}
           >
             <Trash2 size={15} />
@@ -120,8 +128,8 @@ export function RightProperties() {
           onDelete={removeLine}
         />
       ) : (
-        <section className="rounded-md border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-400">
-          Selecione um jogador, equipamento ou linha tática para editar os
+        <section className="rounded-lg border border-slate-200 bg-slate-50/90 p-4 text-sm text-slate-500">
+          Selecione um jogador, equipamento ou linha tatica para editar os
           detalhes.
         </section>
       )}
@@ -138,14 +146,14 @@ interface LinePropertiesProps {
 function LineProperties({ line, onUpdate, onDelete }: LinePropertiesProps) {
   return (
     <section className="space-y-3">
-      <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
         Linha selecionada
       </p>
 
       <div className="space-y-1">
-        <label className="text-xs text-slate-400">Tipo</label>
+        <label className={labelClass}>Tipo</label>
         <select
-          className={`${panelClass} w-full`}
+          className={`${fieldClass} w-full`}
           value={line.type}
           onChange={(event) =>
             onUpdate(line.id, {
@@ -160,9 +168,9 @@ function LineProperties({ line, onUpdate, onDelete }: LinePropertiesProps) {
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs text-slate-400">Cor</label>
+        <label className={labelClass}>Cor</label>
         <input
-          className="h-9 w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900 px-1 py-1"
+          className={colorInputClass}
           type="color"
           value={line.color}
           onChange={(event) => onUpdate(line.id, { color: event.target.value })}
@@ -170,9 +178,9 @@ function LineProperties({ line, onUpdate, onDelete }: LinePropertiesProps) {
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs text-slate-400">Espessura</label>
+        <label className={labelClass}>Espessura</label>
         <input
-          className="w-full accent-[#19d3c5]"
+          className="w-full accent-teal-600"
           type="range"
           min={0.4}
           max={2.2}
@@ -186,7 +194,7 @@ function LineProperties({ line, onUpdate, onDelete }: LinePropertiesProps) {
 
       <button
         type="button"
-        className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-red-500/55 bg-red-600/12 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-600/20"
+        className={dangerButtonClass}
         onClick={() => onDelete(line.id)}
       >
         <Trash2 size={15} />

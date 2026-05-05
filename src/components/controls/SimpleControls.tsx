@@ -47,16 +47,16 @@ interface SimpleControlsProps {
 }
 
 const panelClass =
-  "max-h-[min(calc(100svh-5.5rem),48rem)] w-[min(calc(100vw-1rem),340px)] max-w-full overflow-y-auto rounded-[26px] border border-white/80 bg-[linear-gradient(160deg,rgba(255,255,255,0.97),rgba(241,245,249,0.9))] p-2.5 shadow-[0_36px_90px_-44px_rgba(15,23,42,0.5)] ring-1 ring-slate-200/70 backdrop-blur-2xl sm:max-h-[calc(100svh-2rem)] sm:rounded-[30px] sm:p-3";
+  "max-h-[min(calc(100svh-5.5rem),48rem)] w-[min(calc(100vw-1rem),348px)] max-w-full overflow-y-auto rounded-xl border border-slate-300/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,247,250,0.92))] p-2.5 shadow-[0_34px_88px_-46px_rgba(15,23,42,0.58)] ring-1 ring-white/70 backdrop-blur-2xl sm:max-h-[calc(100svh-2rem)] sm:p-3";
 
 const sectionClass =
-  "rounded-[22px] border border-slate-200/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(248,250,252,0.88))] p-2.5 shadow-[0_20px_44px_-36px_rgba(15,23,42,0.3)] sm:rounded-[24px] sm:p-3";
+  "rounded-lg border border-slate-200/95 bg-white/88 p-2.5 shadow-[0_18px_40px_-36px_rgba(15,23,42,0.32)] sm:p-3";
 
 const subtleButtonClass =
-  "inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] px-3 text-[11px] font-semibold text-slate-700 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 sm:text-xs";
+  "inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-lg border border-slate-300/80 bg-white/92 px-3 text-[11px] font-semibold text-slate-700 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition hover:border-teal-300 hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 sm:text-xs";
 
 const activeSubtleButtonClass =
-  "border-sky-200 bg-[linear-gradient(135deg,rgba(224,242,254,0.96),rgba(239,246,255,0.96))] text-sky-700";
+  "border-teal-300 bg-teal-50 text-teal-800 ring-1 ring-teal-100";
 
 const trainingFieldLayoutOptions: Array<{
   value: TrainingFieldLayout;
@@ -366,7 +366,7 @@ export function SimpleControls({
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-600 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300/80 bg-white/94 text-slate-600 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition hover:border-teal-300 hover:bg-white"
           onClick={onClose}
           aria-label="Fechar painel"
         >
@@ -405,10 +405,10 @@ export function SimpleControls({
 
           <button
             type="button"
-            className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[18px] border border-slate-200/90 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(248,250,252,0.9))] px-3.5 text-xs font-semibold text-slate-700 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
+            className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300/80 bg-white/92 px-3.5 text-xs font-semibold text-slate-700 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition hover:border-teal-300 hover:bg-white"
             onClick={swapSides}
           >
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-600">
               <ArrowRightLeft size={15} />
             </span>
             <span className="text-xs font-semibold text-slate-800">
@@ -513,7 +513,7 @@ export function SimpleControls({
 
               <button
                 type="button"
-                className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-700 shadow-sm transition hover:border-rose-300 hover:bg-rose-100"
+                className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-700 shadow-sm transition hover:border-rose-300 hover:bg-rose-100"
                 onClick={clearTrainingEquipment}
               >
                 Limpar
@@ -636,7 +636,7 @@ export function SimpleControls({
 
           <button
             type="button"
-            className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#0f172a,#1e293b)] px-4 text-xs font-semibold text-white shadow-[0_20px_40px_-28px_rgba(15,23,42,0.5)] transition hover:-translate-y-0.5 hover:brightness-110"
+            className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-lg bg-slate-950 px-4 text-xs font-semibold text-white shadow-[0_18px_38px_-28px_rgba(15,23,42,0.55)] transition hover:bg-slate-800"
             onClick={() => applyFormation(team, formation)}
           >
             Aplicar
@@ -646,7 +646,7 @@ export function SimpleControls({
         <SectionCard icon={Download} title="Arquivo">
           <button
             type="button"
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] px-3 text-xs font-semibold text-slate-700 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300/80 bg-white/92 px-3 text-xs font-semibold text-slate-700 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition hover:border-teal-300 hover:bg-white"
             onClick={onSaveTactic}
           >
             <Download size={14} />
@@ -684,24 +684,24 @@ function MiniPitchViewButton({
   return (
     <button
       type="button"
-      className={`relative min-w-0 overflow-hidden rounded-[16px] border p-1.5 text-left shadow-[0_18px_34px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white ${
+      className={`relative min-w-0 overflow-hidden rounded-lg border p-1.5 text-left shadow-[0_14px_30px_-26px_rgba(15,23,42,0.34)] transition hover:border-teal-300 hover:bg-white ${
         active
-          ? "border-sky-300 bg-[linear-gradient(135deg,rgba(224,242,254,0.96),rgba(239,246,255,0.96))] ring-2 ring-sky-100"
-          : "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))]"
+          ? "border-teal-300 bg-teal-50 ring-1 ring-teal-100"
+          : "border-slate-300/80 bg-white/92"
       }`}
       onClick={onClick}
       aria-pressed={active}
       title={option.label}
     >
       {active ? (
-        <span className="absolute right-1.5 top-1.5 z-10 inline-flex h-4 w-4 items-center justify-center rounded-full bg-white text-sky-700 shadow-sm">
+        <span className="absolute right-1.5 top-1.5 z-10 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-950 text-white shadow-sm">
           <Check size={10} strokeWidth={3} />
         </span>
       ) : null}
 
       <svg
         viewBox={getMiniPitchViewBox(option.value)}
-        className="block aspect-[8/5] w-full rounded-[8px] bg-[#6f9d3d]"
+        className="block aspect-[8/5] w-full rounded-md bg-[#6f9d3d]"
         aria-hidden="true"
       >
         {Array.from({ length: 8 }, (_, index) => (
@@ -883,24 +883,24 @@ function MiniFieldLayoutButton({
   return (
     <button
       type="button"
-      className={`relative overflow-hidden rounded-[16px] border p-1.5 text-left shadow-[0_18px_34px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white ${
+      className={`relative overflow-hidden rounded-lg border p-1.5 text-left shadow-[0_14px_30px_-26px_rgba(15,23,42,0.34)] transition hover:border-teal-300 hover:bg-white ${
         active
-          ? "border-sky-300 bg-[linear-gradient(135deg,rgba(224,242,254,0.96),rgba(239,246,255,0.96))] ring-2 ring-sky-100"
-          : "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))]"
+          ? "border-teal-300 bg-teal-50 ring-1 ring-teal-100"
+          : "border-slate-300/80 bg-white/92"
       }`}
       onClick={onClick}
       aria-pressed={active}
       title={option.label}
     >
       {active ? (
-        <span className="absolute right-2 top-2 z-10 inline-flex h-4 w-4 items-center justify-center rounded-full bg-white text-sky-700 shadow-sm">
+        <span className="absolute right-2 top-2 z-10 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-950 text-white shadow-sm">
           <Check size={10} strokeWidth={3} />
         </span>
       ) : null}
 
       <svg
         viewBox="0 0 96 60"
-        className="block aspect-[8/5] w-full rounded-[8px] bg-[#6f9d3d]"
+        className="block aspect-[8/5] w-full rounded-md bg-[#6f9d3d]"
         aria-hidden="true"
       >
         {Array.from({ length: 8 }, (_, index) => (
@@ -1009,7 +1009,7 @@ function SectionCard({ icon: Icon, title, children }: SectionCardProps) {
   return (
     <section className={sectionClass}>
       <div className="mb-2 flex items-center gap-2">
-        <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[18px] border border-slate-200/90 bg-white text-slate-600 shadow-sm">
+        <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-200/90 bg-slate-50 text-slate-600">
           <Icon size={14} />
         </div>
         <h3 className="min-w-0 truncate text-sm font-semibold text-slate-900">
@@ -1034,7 +1034,7 @@ function CountPill({ label, value, tone }: CountPillProps) {
       : "bg-amber-500 shadow-amber-200/80";
 
   return (
-    <div className="rounded-[18px] border border-slate-200/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] px-3 py-2.5 shadow-[0_18px_34px_-30px_rgba(15,23,42,0.28)]">
+    <div className="rounded-lg border border-slate-200/90 bg-white/92 px-3 py-2.5 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)]">
       <div className="flex items-center gap-2">
         <span
           className={`inline-flex h-2.5 w-2.5 rounded-full shadow-[0_0_0_5px] ${toneClass}`}
@@ -1062,10 +1062,10 @@ function SegmentButton({ active, label, onClick }: SegmentButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-11 items-center justify-center rounded-[18px] border px-3 text-xs font-semibold shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 ${
+      className={`inline-flex h-10 items-center justify-center rounded-lg border px-3 text-xs font-semibold shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition ${
         active
-          ? "border-sky-200 bg-[linear-gradient(135deg,rgba(224,242,254,0.96),rgba(239,246,255,0.96))] text-sky-700"
-          : "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-600 hover:border-slate-300 hover:bg-white"
+          ? "border-slate-950 bg-slate-950 text-white"
+          : "border-slate-300/80 bg-white/92 text-slate-600 hover:border-teal-300 hover:bg-white"
       }`}
     >
       {label}
@@ -1090,17 +1090,17 @@ function ActionButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-11 min-w-0 items-center gap-2.5 rounded-[18px] border px-3 text-left shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 sm:text-xs ${
+      className={`inline-flex h-10 min-w-0 items-center gap-2.5 rounded-lg border px-3 text-left shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition sm:text-xs ${
         variant === "primary"
-          ? "border-slate-900 bg-[linear-gradient(135deg,#0f172a,#1e293b)] text-white hover:brightness-110"
-          : "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-700 hover:border-slate-300 hover:bg-white"
+          ? "border-slate-950 bg-slate-950 text-white hover:bg-slate-800"
+          : "border-slate-300/80 bg-white/92 text-slate-700 hover:border-teal-300 hover:bg-white"
       }`}
     >
       <span
-        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl border shadow-sm ${
+        className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
           variant === "primary"
             ? "border-white/15 bg-white/10 text-white"
-            : "border-slate-200 bg-white text-slate-600"
+            : "border-slate-200 bg-slate-50 text-slate-600"
         }`}
       >
         <Icon size={14} className="shrink-0" />
@@ -1156,19 +1156,19 @@ function ToolTile({
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex min-h-[58px] flex-col items-start justify-between overflow-hidden rounded-[20px] border px-2.5 py-2.5 text-left shadow-[0_20px_40px_-30px_rgba(15,23,42,0.3)] transition-all duration-200 hover:-translate-y-0.5 sm:min-h-[66px] sm:rounded-[22px] sm:px-3 sm:py-3 ${
+      className={`relative flex min-h-[56px] flex-col items-start justify-between overflow-hidden rounded-lg border px-2.5 py-2.5 text-left shadow-[0_14px_30px_-26px_rgba(15,23,42,0.34)] transition-all duration-200 sm:min-h-[62px] sm:px-3 sm:py-3 ${
         active
-          ? "border-sky-200 bg-[linear-gradient(135deg,rgba(224,242,254,0.96),rgba(239,246,255,0.96))] text-sky-700"
-          : "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] text-slate-700 hover:border-slate-300 hover:bg-white"
+          ? "border-teal-300 bg-teal-50 text-teal-800"
+          : "border-slate-300/80 bg-white/92 text-slate-700 hover:border-teal-300 hover:bg-white"
       } ${clicked ? "scale-[0.985]" : ""}`}
     >
       {active ? (
-        <span className="absolute right-2 top-2 inline-flex h-4 w-4 items-center justify-center rounded-full bg-white text-sky-700 shadow-sm">
+        <span className="absolute right-2 top-2 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-950 text-white shadow-sm">
           <Check size={10} strokeWidth={3} />
         </span>
       ) : null}
 
-      <div className="inline-flex h-9 w-9 items-center justify-center rounded-[18px] border border-slate-200/90 bg-white shadow-sm">
+      <div className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200/90 bg-slate-50">
         <Icon size={15} />
       </div>
 

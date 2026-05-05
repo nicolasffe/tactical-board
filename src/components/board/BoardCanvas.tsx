@@ -2105,6 +2105,10 @@ export function BoardCanvas({
                       ? 4.9
                       : 3,
                 );
+                const nameOffset = entity.radius + 1.7;
+                const nameTransform = isPortraitRotated
+                  ? `translate(${-nameOffset} 0)`
+                  : `translate(0 ${nameOffset})`;
 
                 return (
                   <g
@@ -2229,7 +2233,7 @@ export function BoardCanvas({
 
                     {showName && (
                       <g
-                        transform={`translate(0 ${entity.radius + 1.7})`}
+                        transform={nameTransform}
                         className="pointer-events-none"
                       >
                         <g transform={readableTextTransform}>

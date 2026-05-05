@@ -18,10 +18,10 @@ import {
 import { useTacticalBoardStore } from "@/src/store";
 
 const baseButtonClass =
-  "flex items-center gap-2 rounded-md border border-slate-700/70 bg-slate-900/65 px-3 py-2 text-xs font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-800/70";
+  "flex items-center gap-2 rounded-lg border border-slate-300/80 bg-white/94 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-teal-300 hover:bg-white";
 
 const activeButtonClass =
-  "border-[#19d3c5] bg-[#19d3c5]/15 text-[#9bf7f0] shadow-[0_0_0_1px_rgba(25,211,197,0.28)]";
+  "border-slate-950 bg-slate-950 text-white shadow-[0_14px_28px_-22px_rgba(15,23,42,0.42)]";
 
 export function LeftToolbar() {
   const activeTool = useTacticalBoardStore((state) => state.activeTool);
@@ -36,9 +36,9 @@ export function LeftToolbar() {
   const resetBoard = useTacticalBoardStore((state) => state.resetBoard);
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col gap-5 rounded-xl border border-slate-800 bg-[#0a1730] p-4">
+    <aside className="flex w-60 shrink-0 flex-col gap-5 rounded-xl border border-slate-300/75 bg-white/94 p-4 shadow-[0_24px_64px_-44px_rgba(15,23,42,0.46)] backdrop-blur-xl">
       <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
           Ferramentas
         </h2>
         <div className="grid grid-cols-1 gap-2">
@@ -78,7 +78,7 @@ export function LeftToolbar() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
           Equipamentos
         </h2>
         <div className="grid grid-cols-1 gap-2">
@@ -164,7 +164,7 @@ export function LeftToolbar() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
           Exibição
         </h2>
         <div className="grid grid-cols-1 gap-2">
@@ -198,7 +198,7 @@ export function LeftToolbar() {
       </section>
 
       <section className="mt-auto space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
           Histórico
         </h2>
         <div className="grid grid-cols-1 gap-2">

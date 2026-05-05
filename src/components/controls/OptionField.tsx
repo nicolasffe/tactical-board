@@ -26,10 +26,10 @@ interface FloatingPosition {
 }
 
 const triggerBaseClass =
-  "inline-flex h-11 w-full items-center justify-between gap-3 rounded-[18px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.9))] px-3 text-left text-[11px] font-semibold text-slate-700 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] outline-none transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white focus-visible:ring-2 focus-visible:ring-sky-200 sm:text-xs";
+  "inline-flex h-10 w-full items-center justify-between gap-3 rounded-lg border border-slate-300/90 bg-white/95 px-2.5 text-left text-[11px] font-semibold text-slate-700 shadow-[0_12px_26px_-24px_rgba(15,23,42,0.34)] outline-none transition hover:border-teal-300 hover:bg-white focus-visible:ring-2 focus-visible:ring-teal-200 sm:text-xs";
 
 const floatingClass =
-  "overflow-hidden rounded-[20px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-1.5 shadow-[0_26px_64px_-34px_rgba(15,23,42,0.42)] ring-1 ring-slate-200/60 backdrop-blur-xl";
+  "overflow-hidden rounded-xl border border-slate-300/90 bg-white/98 p-1.5 shadow-[0_24px_58px_-34px_rgba(15,23,42,0.46)] ring-1 ring-white/70 backdrop-blur-xl";
 
 export function OptionField({
   options,
@@ -130,7 +130,7 @@ export function OptionField({
       >
         <span className="flex min-w-0 items-center gap-2.5">
           {Icon ? (
-            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm">
+            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-500">
               <Icon size={14} />
             </span>
           ) : null}
@@ -138,7 +138,7 @@ export function OptionField({
         </span>
 
         <span
-          className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition ${isOpen ? "rotate-180 text-slate-700" : ""}`}
+          className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-500 transition ${isOpen ? "rotate-180 border-teal-200 bg-teal-50 text-teal-700" : ""}`}
         >
           <ChevronDown size={15} />
         </span>
@@ -175,10 +175,10 @@ export function OptionField({
                       role="option"
                       aria-selected={isSelected}
                       autoFocus={isSelected}
-                      className={`flex w-full items-center justify-between gap-3 rounded-[14px] px-3 py-2.5 text-left text-[11px] font-semibold transition sm:text-xs ${
+                      className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-[11px] font-semibold transition sm:text-xs ${
                         isSelected
-                          ? "bg-[linear-gradient(135deg,#1e293b,#334155)] text-white shadow-[0_16px_32px_-24px_rgba(15,23,42,0.55)]"
-                          : "text-slate-700 hover:bg-slate-100/90"
+                          ? "bg-slate-950 text-white shadow-[0_16px_32px_-24px_rgba(15,23,42,0.55)]"
+                          : "text-slate-700 hover:bg-teal-50/80"
                       }`}
                       onClick={() => {
                         onChange(option.value);

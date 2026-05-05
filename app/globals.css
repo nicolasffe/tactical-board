@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --app-bg: #eeeeec;
-  --app-panel: rgba(255, 255, 255, 0.88);
-  --app-border: rgba(148, 163, 184, 0.22);
+  --app-bg: #e7ebef;
+  --app-panel: rgba(250, 252, 253, 0.94);
+  --app-border: rgba(76, 88, 102, 0.22);
   --app-text: #0f172a;
-  --app-muted: #5b6b82;
+  --app-muted: #596878;
   --font-sans:
     "Aptos",
     "Segoe UI",
@@ -42,21 +42,21 @@ body {
   font-family: var(--font-sans), sans-serif;
   background:
     radial-gradient(
-      circle at 12% 10%,
-      rgba(15, 23, 42, 0.1),
-      transparent 26%
+      circle at 18% 8%,
+      rgba(20, 184, 166, 0.12),
+      transparent 24%
     ),
     radial-gradient(
-      circle at 88% 14%,
-      rgba(100, 116, 139, 0.08),
-      transparent 20%
+      circle at 86% 18%,
+      rgba(245, 158, 11, 0.11),
+      transparent 22%
     ),
     radial-gradient(
       circle at 52% 100%,
-      rgba(30, 41, 59, 0.12),
+      rgba(71, 85, 105, 0.16),
       transparent 34%
     ),
-    linear-gradient(135deg, #f5f5f4 0%, #ececeb 46%, #dedede 100%);
+    linear-gradient(135deg, #f8fafc 0%, #e7ebef 48%, #d7dde4 100%);
   color: var(--app-text);
 }
 
@@ -66,32 +66,26 @@ body::before {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(
-      circle at center,
-      rgba(255, 255, 255, 0.58) 0%,
-      rgba(255, 255, 255, 0.16) 42%,
-      transparent 72%
-    ),
     linear-gradient(
       125deg,
       transparent 0%,
-      rgba(255, 255, 255, 0.28) 48%,
+      rgba(255, 255, 255, 0.32) 48%,
       transparent 100%
     ),
     repeating-linear-gradient(
       0deg,
-      rgba(148, 163, 184, 0.06) 0 1px,
-      transparent 1px 36px
+      rgba(71, 85, 105, 0.07) 0 1px,
+      transparent 1px 32px
     ),
     repeating-linear-gradient(
       90deg,
-      rgba(148, 163, 184, 0.06) 0 1px,
-      transparent 1px 36px
+      rgba(71, 85, 105, 0.07) 0 1px,
+      transparent 1px 32px
     ),
     repeating-linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.18) 0 1px,
-      transparent 1px 120px
+      rgba(255, 255, 255, 0.2) 0 1px,
+      transparent 1px 112px
     );
   mask-image: radial-gradient(circle at center, black 0%, black 62%, transparent 92%);
 }
