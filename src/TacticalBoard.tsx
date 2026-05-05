@@ -1,10 +1,12 @@
 "use client";
 
 import {
+  ArrowRightLeft,
   GripHorizontal,
   LayoutPanelLeft,
   Pause,
   Play,
+  Plus,
   Redo2,
   RotateCcw,
   Undo2,
@@ -540,10 +542,12 @@ export default function TacticalBoard() {
       {benchDrag ? (
         <div className="pointer-events-none absolute inset-0 z-40">
           <div
-            className={`absolute max-w-[min(78vw,320px)] -translate-x-1/2 -translate-y-1/2 rounded-xl border px-3 py-2 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.42)] backdrop-blur-xl ${
+            className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border p-1.5 shadow-[0_18px_46px_-30px_rgba(15,23,42,0.5)] backdrop-blur-xl ${
               benchDrag.targetPlayerName
-                ? "border-emerald-200/90 bg-white/96"
-                : "border-white/80 bg-white/94"
+                ? "border-emerald-200/90 bg-emerald-50/96"
+                : benchDrag.fieldDropPoint
+                  ? "border-sky-200/90 bg-sky-50/96"
+                  : "border-white/80 bg-white/94"
             }`}
             style={{
               left: benchDrag.clientX,
@@ -552,7 +556,7 @@ export default function TacticalBoard() {
           >
             <div className="flex items-center gap-2">
               <span
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm ${
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm ${
                   benchDrag.targetPlayerName
                     ? "bg-emerald-500"
                     : benchDrag.team === "home"
@@ -562,18 +566,26 @@ export default function TacticalBoard() {
               >
                 {benchDrag.playerNumber}
               </span>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-slate-900">
-                  {benchDrag.playerName}
-                </p>
-                <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  {benchDrag.targetPlayerName
-                    ? `Solte para trocar com ${benchDrag.targetPlayerName}`
+              <span
+                className={`inline-flex h-7 w-7 items-center justify-center rounded-full border text-slate-700 shadow-sm ${
+                  benchDrag.targetPlayerName
+                    ? "border-emerald-200 bg-white text-emerald-700"
                     : benchDrag.fieldDropPoint
-                      ? "Solte para colocar em campo"
-                      : "Arraste até um titular ou uma área livre"}
-                </p>
-              </div>
+                      ? "border-sky-200 bg-white text-sky-700"
+                      : "border-slate-200 bg-white"
+                }`}
+              >
+                {benchDrag.targetPlayerName ? (
+                  <ArrowRightLeft size={13} />
+                ) : (
+                  <Plus size={13} />
+                )}
+              </span>
+              {benchDrag.targetPlayerNumber ? (
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-950 text-sm font-bold text-white shadow-sm">
+                  {benchDrag.targetPlayerNumber}
+                </span>
+              ) : null}
             </div>
           </div>
         </div>

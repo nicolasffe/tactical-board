@@ -104,7 +104,7 @@ function PlayerAvatar({ player, jerseyStyle }: PlayerAvatarProps) {
 
   if (player.avatarUrl && !imageFailed) {
     return (
-      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-white/80 bg-slate-100 shadow-sm sm:h-10 sm:w-10">
+      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg border border-white/80 bg-slate-100 shadow-sm sm:h-9 sm:w-9">
         <Image
           src={player.avatarUrl}
           alt={player.name}
@@ -120,7 +120,7 @@ function PlayerAvatar({ player, jerseyStyle }: PlayerAvatarProps) {
   }
 
   return (
-    <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/70 bg-white/50 p-1 shadow-sm sm:h-10 sm:w-10">
+    <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/70 bg-white/50 p-1 shadow-sm sm:h-9 sm:w-9">
       <div
         className="flex h-full w-full items-center justify-center rounded-md text-[10px] font-semibold text-white shadow-sm"
         style={jerseyStyle}
@@ -215,6 +215,7 @@ export function BottomPlayerPanel({
       ).length,
     [filteredPlayers, activeFrame],
   );
+  const benchCount = filteredPlayers.length - onPitchCount;
 
   useEffect(
     () => () => {
@@ -308,7 +309,11 @@ export function BottomPlayerPanel({
           const targetPlayer = entities[fieldPlayerId];
 
           return isPlayerEntity(targetPlayer)
-            ? { playerId: targetPlayer.id, playerName: targetPlayer.name }
+            ? {
+                playerId: targetPlayer.id,
+                playerName: targetPlayer.name,
+                playerNumber: targetPlayer.number,
+              }
             : null;
         }
       }
@@ -331,8 +336,8 @@ export function BottomPlayerPanel({
         const centerY = rect.top + rect.height / 2;
         const distance = Math.hypot(clientX - centerX, clientY - centerY);
         const targetRadius = Math.max(
-          44,
-          Math.min(76, Math.max(rect.width, rect.height) * 1.35),
+          56,
+          Math.min(96, Math.max(rect.width, rect.height) * 1.7),
         );
 
         if (distance <= targetRadius && distance < closestDistance) {
@@ -348,7 +353,11 @@ export function BottomPlayerPanel({
       const targetPlayer = entities[closestTargetId];
 
       return isPlayerEntity(targetPlayer)
-        ? { playerId: targetPlayer.id, playerName: targetPlayer.name }
+        ? {
+            playerId: targetPlayer.id,
+            playerName: targetPlayer.name,
+            playerNumber: targetPlayer.number,
+          }
         : null;
     };
 
@@ -433,6 +442,7 @@ export function BottomPlayerPanel({
         clientY: nativeEvent.clientY,
         targetPlayerId: targetPlayer?.playerId,
         targetPlayerName: targetPlayer?.playerName,
+        targetPlayerNumber: targetPlayer?.playerNumber,
         fieldDropPoint: fieldDropPoint ?? undefined,
       });
     };
@@ -497,10 +507,17 @@ export function BottomPlayerPanel({
           />
         </div>
 
-        <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:flex-wrap sm:justify-end">
-          <span className="inline-flex h-9 items-center rounded-lg border border-slate-300/80 bg-white/92 px-3 text-[11px] font-semibold text-slate-700 shadow-sm backdrop-blur-sm">
-            {onPitchCount}/{MAX_PLAYERS_ON_PITCH}
-          </span>
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+          <div className="inline-flex h-9 overflow-hidden rounded-lg border border-slate-300/80 bg-white/92 text-[11px] font-semibold shadow-sm backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1.5 border-r border-slate-200 px-2.5 text-emerald-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Campo {onPitchCount}/{MAX_PLAYERS_ON_PITCH}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 text-sky-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
+              Banco {benchCount}
+            </span>
+          </div>
 
           <IconButton
             title={settings.showPlayerNames ? "Ocultar nomes" : "Mostrar nomes"}
@@ -559,7 +576,7 @@ export function BottomPlayerPanel({
                   handlePlayerCardClick(player);
                 }
               }}
-              className={`group relative min-w-[158px] overflow-hidden rounded-lg border px-2.5 py-2 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 sm:min-w-[178px] ${statusMeta.cardClass}`}
+              className={`group relative min-w-[126px] overflow-hidden rounded-lg border px-2.5 py-1.5 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 sm:min-w-[162px] sm:py-2 ${statusMeta.cardClass}`}
               data-substitution-source={
                 needsDragSubstitution ? player.id : undefined
               }
@@ -568,7 +585,7 @@ export function BottomPlayerPanel({
                   ? "Mandar ao banco"
                   : canEnterDirectly
                     ? "Colocar em campo"
-                    : "Arraste até um titular no campo"
+                    : "Trocar jogador"
               }
               style={{ touchAction: needsDragSubstitution ? "none" : "pan-x" }}
             >
@@ -579,7 +596,7 @@ export function BottomPlayerPanel({
 
               <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-md border text-sm font-bold shadow-sm sm:h-9 sm:w-9 ${teamTone.strong}`}
+                  className={`inline-flex h-7 w-7 items-center justify-center rounded-md border text-xs font-bold shadow-sm sm:h-8 sm:w-8 sm:text-sm ${teamTone.strong}`}
                 >
                   {player.number}
                 </span>
@@ -613,11 +630,11 @@ export function BottomPlayerPanel({
                 </div>
               </div>
 
-              <div className="mt-2.5 flex items-center gap-2">
+              <div className="mt-1.5 flex items-center gap-2 sm:mt-2">
                 <PlayerAvatar player={player} jerseyStyle={jerseyStyle} />
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12.5px] font-semibold tracking-[-0.01em] text-slate-900 sm:text-[13px]">
+                  <p className="truncate text-[11.5px] font-semibold text-slate-900 sm:text-[13px]">
                     {player.name}
                   </p>
                 </div>

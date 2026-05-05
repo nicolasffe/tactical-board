@@ -2144,15 +2144,13 @@ export function BoardCanvas({
                       fill="transparent"
                     />
 
-                    {(isSelected || isHovered || isBenchDragTargetCandidate) && (
+                    {(isSelected || isHovered || isSubstitutionHoveredTarget) && (
                       <circle
                         r={Math.max(
                           entity.radius *
                             (isSubstitutionHoveredTarget
                               ? 2.05
-                              : isBenchDragTargetCandidate
-                                ? 1.62
-                                : 1.35),
+                              : 1.35),
                           3,
                         )}
                         fill={
@@ -2160,8 +2158,6 @@ export function BoardCanvas({
                             ? "rgba(14,165,233,0.18)"
                             : isSubstitutionHoveredTarget
                               ? "rgba(16,185,129,0.24)"
-                              : isBenchDragTargetCandidate
-                                ? "rgba(245,158,11,0.12)"
                               : "rgba(255,255,255,0.12)"
                         }
                         stroke={
@@ -2169,16 +2165,9 @@ export function BoardCanvas({
                             ? "rgba(14,165,233,0.95)"
                             : isSubstitutionHoveredTarget
                               ? "rgba(16,185,129,0.96)"
-                              : isBenchDragTargetCandidate
-                                ? "rgba(245,158,11,0.88)"
                               : "rgba(255,255,255,0.5)"
                         }
                         strokeWidth={isSubstitutionHoveredTarget ? 0.36 : 0.24}
-                        strokeDasharray={
-                          isBenchDragTargetCandidate && !isSubstitutionHoveredTarget
-                            ? "1.2 0.9"
-                            : undefined
-                        }
                         className="pointer-events-none"
                       />
                     )}
@@ -2206,27 +2195,20 @@ export function BoardCanvas({
                         className="pointer-events-none"
                       >
                         <g transform={readableTextTransform}>
-                          <rect
-                            x={-4.9}
-                            y={-1.25}
-                            width={9.8}
-                            height={2.35}
-                            rx={0.75}
-                            fill="rgba(15,23,42,0.88)"
-                            stroke="rgba(255,255,255,0.72)"
-                            strokeWidth={0.12}
+                          <circle
+                            r={1.42}
+                            fill="#10b981"
+                            stroke="rgba(255,255,255,0.88)"
+                            strokeWidth={0.16}
                           />
-                          <text
-                            x={0}
-                            y={-0.02}
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            fontSize={0.92}
-                            fill="#ffffff"
-                            fontWeight={700}
-                          >
-                            Soltar aqui
-                          </text>
+                          <path
+                            d="M -0.78 -0.3 H 0.56 M 0.2 -0.66 L 0.58 -0.3 L 0.2 0.06 M 0.78 0.36 H -0.56 M -0.2 0 L -0.58 0.36 L -0.2 0.72"
+                            fill="none"
+                            stroke="#ffffff"
+                            strokeWidth={0.18}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </g>
                       </g>
                     )}
@@ -2279,33 +2261,24 @@ export function BoardCanvas({
                   {renderEntityShape(draggedBenchPlayer, readableTextTransform)}
                 </g>
                 <g
-                  transform={`translate(0 ${Math.max(
-                    draggedBenchPlayer.radius + 2.4,
-                    4,
-                  )})`}
+                  transform={`translate(${Math.max(
+                    draggedBenchPlayer.radius + 2.1,
+                    3.8,
+                  )} ${-Math.max(draggedBenchPlayer.radius + 2.1, 3.8)})`}
                 >
                   <g transform={readableTextTransform}>
-                    <rect
-                      x={-5.05}
-                      y={-1.15}
-                      width={10.1}
-                      height={2.25}
-                      rx={0.75}
-                      fill="rgba(15,23,42,0.88)"
-                      stroke="rgba(255,255,255,0.7)"
-                      strokeWidth={0.12}
+                    <circle
+                      r={1.22}
+                      fill="#0ea5e9"
+                      stroke="rgba(255,255,255,0.88)"
+                      strokeWidth={0.15}
                     />
-                    <text
-                      x={0}
-                      y={-0.02}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize={0.9}
-                      fill="#ffffff"
-                      fontWeight={700}
-                    >
-                      Entrar aqui
-                    </text>
+                    <path
+                      d="M -0.54 0 H 0.54 M 0 -0.54 V 0.54"
+                      stroke="#ffffff"
+                      strokeWidth={0.22}
+                      strokeLinecap="round"
+                    />
                   </g>
                 </g>
               </g>

@@ -8,12 +8,16 @@ import {
   DraftingCompass,
   Fence,
   Goal,
-  Grid3X3,
   Highlighter,
+  LayoutDashboard,
+  Map as MapIcon,
   MoveRight,
   MousePointer2,
+  Palette,
+  Rows3,
   ScanLine,
   Send,
+  Shirt,
   SquarePen,
   Triangle,
   Type,
@@ -58,10 +62,12 @@ const subtleButtonClass =
 const activeSubtleButtonClass =
   "border-teal-300 bg-teal-50 text-teal-800 ring-1 ring-teal-100";
 
-const trainingFieldLayoutOptions: Array<{
+interface TrainingFieldLayoutOption {
   value: TrainingFieldLayout;
   label: string;
-}> = [
+}
+
+const trainingFieldLayoutOptions: TrainingFieldLayoutOption[] = [
   { value: "none", label: "Sem divisão" },
   { value: "vertical-halves", label: "2 meios" },
   { value: "horizontal-halves", label: "2 faixas" },
@@ -77,6 +83,57 @@ const trainingFieldLayoutOptions: Array<{
   { value: "defensive-third", label: "Terço defensivo" },
   { value: "attacking-channels", label: "Finalização" },
   { value: "defensive-channels", label: "Construção" },
+];
+
+const getTrainingFieldLayoutOption = (
+  value: TrainingFieldLayout,
+): TrainingFieldLayoutOption => {
+  const option = trainingFieldLayoutOptions.find((item) => item.value === value);
+  if (!option) {
+    throw new Error(`Unknown training field layout: ${value}`);
+  }
+
+  return option;
+};
+
+const trainingFieldLayoutGroups: Array<{
+  label: string;
+  options: TrainingFieldLayoutOption[];
+}> = [
+  {
+    label: "Básicas",
+    options: ([
+      "none",
+      "vertical-halves",
+      "horizontal-halves",
+      "quarters",
+      "six-zones",
+    ] as TrainingFieldLayout[]).map(getTrainingFieldLayoutOption),
+  },
+  {
+    label: "Faixas",
+    options: ([
+      "horizontal-thirds",
+      "horizontal-fourths",
+      "attacking-third",
+      "defensive-third",
+    ] as TrainingFieldLayout[]).map(getTrainingFieldLayoutOption),
+  },
+  {
+    label: "Corredores",
+    options: ([
+      "vertical-thirds",
+      "vertical-fifths",
+      "central-corridor",
+      "wide-channels",
+    ] as TrainingFieldLayout[]).map(getTrainingFieldLayoutOption),
+  },
+  {
+    label: "Treino",
+    options: (["attacking-channels", "defensive-channels"] as TrainingFieldLayout[]).map(
+      getTrainingFieldLayoutOption,
+    ),
+  },
 ];
 
 const trainingPitchViewOptions: Array<{
@@ -417,7 +474,7 @@ export function SimpleControls({
           </button>
         </SectionCard>
 
-        <SectionCard icon={Grid3X3} title="Modo">
+        <SectionCard icon={LayoutDashboard} title="Modo">
           <div className="grid grid-cols-2 gap-2">
             <SegmentButton
               active={settings.mode === "match"}
@@ -463,15 +520,48 @@ export function SimpleControls({
             </>
           )}
 
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {trainingFieldLayoutOptions.map((option) => (
-              <MiniFieldLayoutButton
-                key={option.value}
-                option={option}
-                active={settings.training.fieldLayout === option.value}
-                onClick={() => onChangeTrainingFieldLayout(option.value)}
-              />
-            ))}
+          <div className="mt-3 rounded-lg border border-sky-200/90 bg-sky-50/75 p-2 shadow-[0_16px_34px_-28px_rgba(14,165,233,0.42)] ring-1 ring-white/70">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-sky-200 bg-white/86 text-sky-700">
+                  <MapIcon size={14} />
+                </span>
+                <p className="truncate text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
+                  Divisão do campo
+                </p>
+              </div>
+
+              <span className="shrink-0 rounded-full bg-white/86 px-2.5 py-1 text-[10px] font-semibold text-sky-700 ring-1 ring-sky-200">
+                {
+                  getTrainingFieldLayoutOption(settings.training.fieldLayout)
+                    .label
+                }
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {trainingFieldLayoutGroups.map((group) => (
+                <div key={group.label}>
+                  <div className="mb-1 flex items-center gap-1.5 px-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-sky-500/80" />
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                      {group.label}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {group.options.map((option) => (
+                      <MiniFieldLayoutButton
+                        key={option.value}
+                        option={option}
+                        active={settings.training.fieldLayout === option.value}
+                        onClick={() => onChangeTrainingFieldLayout(option.value)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {settings.mode === "training" && (
@@ -479,12 +569,12 @@ export function SimpleControls({
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <ActionButton icon={Triangle} label="Cone" onClick={addTrainingCone} />
                 <ActionButton
-                  icon={Grid3X3}
+                  icon={Rows3}
                   label="Linha"
                   onClick={addTrainingConeLine}
                 />
                 <ActionButton
-                  icon={Grid3X3}
+                  icon={Shirt}
                   label="Manequim"
                   onClick={addTrainingMannequin}
                 />
@@ -588,9 +678,9 @@ export function SimpleControls({
           </div>
         </SectionCard>
 
-        <SectionCard icon={Grid3X3} title="Visual">
+        <SectionCard icon={Palette} title="Visual">
           <OptionField
-            icon={Grid3X3}
+            icon={Palette}
             options={pitchStyleOptions}
             value={settings.pitchStyle}
             onChange={(nextValue) =>
@@ -613,7 +703,7 @@ export function SimpleControls({
           </div>
         </SectionCard>
 
-        <SectionCard icon={Grid3X3} title="Formação">
+        <SectionCard icon={DraftingCompass} title="Formação">
           <div className="grid grid-cols-2 gap-2">
             <OptionField
               icon={UsersRound}
@@ -785,7 +875,7 @@ function MiniPitchViewButton({
 }
 
 interface MiniFieldLayoutButtonProps {
-  option: (typeof trainingFieldLayoutOptions)[number];
+  option: TrainingFieldLayoutOption;
   active: boolean;
   onClick: () => void;
 }
@@ -1064,7 +1154,7 @@ function SegmentButton({ active, label, onClick }: SegmentButtonProps) {
       onClick={onClick}
       className={`inline-flex h-10 items-center justify-center rounded-lg border px-3 text-xs font-semibold shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition ${
         active
-          ? "border-slate-950 bg-slate-950 text-white"
+          ? "border-teal-300 bg-teal-50 text-teal-800 ring-1 ring-teal-100"
           : "border-slate-300/80 bg-white/92 text-slate-600 hover:border-teal-300 hover:bg-white"
       }`}
     >
@@ -1158,17 +1248,24 @@ function ToolTile({
       onClick={onClick}
       className={`relative flex min-h-[56px] flex-col items-start justify-between overflow-hidden rounded-lg border px-2.5 py-2.5 text-left shadow-[0_14px_30px_-26px_rgba(15,23,42,0.34)] transition-all duration-200 sm:min-h-[62px] sm:px-3 sm:py-3 ${
         active
-          ? "border-teal-300 bg-teal-50 text-teal-800"
+          ? "border-teal-300 bg-white/96 text-slate-950 ring-1 ring-teal-100"
           : "border-slate-300/80 bg-white/92 text-slate-700 hover:border-teal-300 hover:bg-white"
       } ${clicked ? "scale-[0.985]" : ""}`}
     >
-      {active ? (
-        <span className="absolute right-2 top-2 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-950 text-white shadow-sm">
-          <Check size={10} strokeWidth={3} />
-        </span>
-      ) : null}
+      <span
+        className={`absolute inset-y-2 left-0 w-[3px] rounded-r-full ${
+          active ? "bg-teal-500" : "bg-transparent"
+        }`}
+        aria-hidden="true"
+      />
 
-      <div className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200/90 bg-slate-50">
+      <div
+        className={`inline-flex h-8 w-8 items-center justify-center rounded-md border ${
+          active
+            ? "border-teal-200 bg-teal-50 text-teal-700"
+            : "border-slate-200/90 bg-slate-50"
+        }`}
+      >
         <Icon size={15} />
       </div>
 

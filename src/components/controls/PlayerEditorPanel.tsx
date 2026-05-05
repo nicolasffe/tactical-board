@@ -345,21 +345,21 @@ export function PlayerEditorPanel({
               {selectedPlayer.kind === "goalkeeper" ? "Goleiro" : "Linha"}
             </p>
           </div>
-
-          <span
-            className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold sm:ml-auto ${
-              isOnPitch
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-amber-100 text-amber-700"
-            }`}
-          >
-            {isOnPitch ? "Campo" : "Banco"}
-          </span>
         </div>
       </section>
 
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <div className="sm:col-span-2">
+      <section className="mt-3 rounded-lg border border-slate-200/95 bg-white/82 p-3 shadow-[0_16px_36px_-30px_rgba(15,23,42,0.32)]">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+            Ficha
+          </p>
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-500">
+            {selectedIndex + 1}/{teamPlayers.length}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <FieldShell label="Nome" className="sm:col-span-2">
           <input
             className={inputClass}
             value={selectedPlayer.name}
@@ -368,8 +368,9 @@ export function PlayerEditorPanel({
               updateEntity(selectedPlayer.id, { name: event.target.value })
             }
           />
-        </div>
+          </FieldShell>
 
+          <FieldShell label="Número">
         <div className="relative">
           <Shirt
             size={12}
@@ -393,7 +394,9 @@ export function PlayerEditorPanel({
             }}
           />
         </div>
+          </FieldShell>
 
+          <FieldShell label="Camisa">
         <OptionField
           icon={Shirt}
           options={jerseyStyleOptions}
@@ -405,12 +408,19 @@ export function PlayerEditorPanel({
             })
           }
         />
+          </FieldShell>
 
+          <FieldShell label="Cor">
         <label
-          className="inline-flex h-10 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300/80 bg-white/94 px-3 text-[11px] font-semibold text-slate-700 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition hover:border-teal-300 hover:bg-white sm:text-xs"
+          className="inline-flex h-10 w-full min-w-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300/80 bg-white/94 px-3 text-[11px] font-semibold text-slate-700 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition hover:border-teal-300 hover:bg-white sm:text-xs"
           title={`Cor de ${selectedPlayer.name}`}
         >
           <Palette size={14} />
+          <span
+            className="h-4 w-4 rounded-full border border-white shadow-sm ring-1 ring-slate-300"
+            style={{ backgroundColor: selectedPlayer.color }}
+            aria-hidden="true"
+          />
           Cor
           <input
             className="absolute h-0 w-0 opacity-0"
@@ -421,10 +431,12 @@ export function PlayerEditorPanel({
             }
           />
         </label>
+          </FieldShell>
 
+          <FieldShell label="Status">
         <button
           type="button"
-          className={`h-10 min-w-0 rounded-lg border px-3 text-[11px] font-semibold shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition sm:text-xs ${
+          className={`h-10 w-full min-w-0 rounded-lg border px-3 text-[11px] font-semibold shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition sm:text-xs ${
             selectedPlayer.isStarter === false
               ? "border-slate-300/80 bg-white/94 text-slate-700 hover:border-teal-300 hover:bg-white"
               : `${tone.soft} bg-white/72`
@@ -437,10 +449,12 @@ export function PlayerEditorPanel({
         >
           {selectedPlayer.isStarter === false ? "Reserva" : "Titular"}
         </button>
+          </FieldShell>
 
+          <FieldShell label="Campo">
         <button
           type="button"
-          className={`h-10 min-w-0 rounded-lg border px-3 text-[11px] font-semibold shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition sm:text-xs ${
+          className={`h-10 w-full min-w-0 rounded-lg border px-3 text-[11px] font-semibold shadow-[0_12px_28px_-24px_rgba(15,23,42,0.34)] transition sm:text-xs ${
             isOnPitch
               ? "border-amber-300 bg-amber-50 text-amber-800 hover:border-amber-400"
               : canEnterPitch
@@ -460,7 +474,9 @@ export function PlayerEditorPanel({
               ? "Entrar em campo"
               : "Campo cheio"}
         </button>
-      </div>
+          </FieldShell>
+        </div>
+      </section>
     </aside>
   );
 }
@@ -469,6 +485,23 @@ interface NavButtonProps {
   title: string;
   onClick: () => void;
   children: React.ReactNode;
+}
+
+interface FieldShellProps {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+function FieldShell({ label, children, className }: FieldShellProps) {
+  return (
+    <div className={`block min-w-0 ${className ?? ""}`}>
+      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+        {label}
+      </span>
+      {children}
+    </div>
+  );
 }
 
 function NavButton({ title, onClick, children }: NavButtonProps) {
@@ -496,10 +529,10 @@ function TeamTabButton({ label, active, onClick }: TeamTabButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 truncate rounded-md px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${
+      className={`flex-1 truncate rounded-md border px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${
         active
-          ? "bg-slate-950 text-white shadow-[0_14px_28px_-22px_rgba(15,23,42,0.42)]"
-          : "text-slate-500 hover:bg-white/70 hover:text-slate-800"
+          ? "border-teal-300 bg-white text-teal-800 shadow-[0_14px_28px_-22px_rgba(15,23,42,0.24)] ring-1 ring-teal-100"
+          : "border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800"
       }`}
     >
       {label}

@@ -151,6 +151,7 @@ export interface BenchDragPreview {
   clientY: number;
   targetPlayerId?: Id;
   targetPlayerName?: string;
+  targetPlayerNumber?: number;
   fieldDropPoint?: Point;
 }
 
